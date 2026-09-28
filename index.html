@@ -419,7 +419,7 @@ function call(req) {
 
 function toast(msg) {
   var t = document.getElementById('toast'); t.textContent = msg; t.hidden = false;
-  clearTimeout(toast.h); toast.h = setTimeout(function () { t.hidden = true; }, 3800);
+  clearTimeout(toast.h); toast.h = setTimeout(function () { t.hidden = true; }, 6000);
 }
 function modal(html) {
   var m = document.getElementById('modal'); m.innerHTML = '<div class="card">' + html + '<button id="mOk">Tuyệt vời</button></div>'; m.hidden = false;
@@ -549,6 +549,7 @@ function render() {
   if (!S.creds || !S.v) {
     tabs.hidden = true; out.hidden = true; app.innerHTML = viewLogin();
     if (!ENDPOINT) { document.getElementById('ma').value = 'UMK-DEMO'; document.getElementById('pin').value = '0000'; }
+    else if (S.lastMa) document.getElementById('ma').value = S.lastMa;
   } else {
     tabs.hidden = false; out.hidden = false;
     app.innerHTML = S.tab === 'bag' ? viewBag(S.v) : S.tab === 'team' ? viewTeam(S.v) : S.tab === 'rules' ? viewRules() : viewToday(S.v);
@@ -575,6 +576,7 @@ document.addEventListener('submit', function (ev) {
   if (ev.target.id !== 'login') return;
   ev.preventDefault();
   S.creds = { ma: document.getElementById('ma').value.trim().toUpperCase(), pin: document.getElementById('pin').value.trim() };
+  S.lastMa = S.creds.ma;
   store('gc-creds', S.creds); send({ a: 'state' });
 });
 
