@@ -212,15 +212,34 @@ var GC = (function () {
   }
 
   function player(st, ma) {
-    if (!st.p[ma]) st.p[ma] = { ma: ma, name: (st.names[ma] || ma), bag: {}, days: {}, wins: [], gave: {}, starUsed: 0, pending: null };
+    if (!st.p[ma]) st.p[ma] = { ma: ma, name: (st.names[ma] || ma), bag: {}, days: {}, dayLink: {}, wins: [], gave: {}, starUsed: 0, pending: null };
     return st.p[ma];
   }
   function add(p, l) { p.bag[l] = (p.bag[l] || 0) + 1; }
   function take(p, l) { if ((p.bag[l] || 0) > 0) { p.bag[l]--; if (!p.bag[l]) delete p.bag[l]; return true; } return false; }
   function feed(st, e, text) { st.feed.push({ at: e.at, text: text }); }
 
+  // Chuẩn hoá link Facebook để nhận ra cùng 1 bài dù dán kiểu khác nhau (bỏ ?mibextid…, bỏ / cuối, lấy id reel/video/post).
+  // Link rút gọn /share/… mỗi lần bấm "Chia sẻ" có thể ra mã khác nhau nên chỉ chặn được khi dán y nguyên mã đó.
+  function normLink(u) {
+    var s = String(u || '').trim().replace(/^https?:\/\//i, '');
+    var host = s.split(/[\/?#]/)[0].toLowerCase().replace(/^(www|m|web|mbasic)\./, '');
+    var rest = s.slice(s.split(/[\/?#]/)[0].length);
+    var q = function (k) { var m = rest.match(new RegExp('[?&]' + k + '=([^&#]+)')); return m && m[1]; };
+    var m;
+    if (host === 'fb.watch') return 'fbw:' + rest.replace(/[?#].*$/, '').replace(/\/+$/, '').replace(/^\//, '');
+    if ((m = rest.match(/\/reels?\/(\d+)/))) return 'reel:' + m[1];
+    if ((m = rest.match(/\/videos\/(?:[^\/]+\/)?(\d+)/))) return 'video:' + m[1];
+    if (q('v')) return 'video:' + q('v');
+    if (q('story_fbid')) return 'post:' + q('story_fbid');
+    if (q('fbid')) return 'post:' + q('fbid');
+    if ((m = rest.match(/\/posts\/([\w-]+)/))) return 'post:' + m[1];
+    if ((m = rest.match(/\/share\/(?:[a-z]\/)?([\w-]+)/))) return 'share:' + m[1];
+    return host + rest.replace(/[?#].*$/, '').replace(/\/+$/, '');
+  }
+
   function build(events, players) {
-    var st = { p: {}, names: {}, total: 0, issued: {}, pendingKeys: {}, done: {}, feed: [] };
+    var st = { p: {}, names: {}, total: 0, issued: {}, pendingKeys: {}, done: {}, feed: [], links: {} };
     (players || []).forEach(function (x) { st.names[x.ma] = x.name; });
     (players || []).forEach(function (x) { player(st, x.ma); });
     WORDS.forEach(function (w) { st.done[w.id] = 0; });
@@ -233,6 +252,7 @@ var GC = (function () {
       if (e.t === 'in') {
         if (p.days[e.d]) return;
         p.days[e.d] = e.l || 'pending'; st.total++;
+        if (e.link) { var lk = normLink(e.link); p.dayLink[e.d] = lk; if (!st.links[lk]) st.links[lk] = { ma: e.ma, d: e.d }; }
         if (e.l) { add(p, e.l); issue(e.l, 1); } else { p.pending = { d: e.d, o: e.o }; pend(e.o, 1); }
       } else if (e.t === 'pick') {
         if (!p.pending) return;
@@ -248,6 +268,9 @@ var GC = (function () {
       } else if (e.t === 'rev') {
         var l = p.days[e.d];
         if (l) { delete p.days[e.d]; st.total--; if (l !== 'pending' && take(p, l)) issue(l, -1); }
+        var rk = p.dayLink[e.d];
+        if (rk && st.links[rk] && st.links[rk].ma === e.ma && st.links[rk].d === e.d) delete st.links[rk];
+        delete p.dayLink[e.d];
       }
       while (reached < CFG.milestones.length && st.total >= CFG.milestones[reached]) {
         reached++; feed(st, e, 'Cả nhóm chạm mốc ' + CFG.milestones[reached - 1] + ' lượt check-in — mỗi người được 1 chữ vàng ★');
@@ -305,6 +328,8 @@ var GC = (function () {
       if (day > CFG.end) return err('Đã hết ngày check-in (30/10). Bạn vẫn ghép và tặng chữ được tới 01/11.');
       if (p.days[day]) return err(req.bu ? 'Hôm qua bạn đã check-in rồi.' : 'Hôm nay bạn đã check-in rồi. Hẹn bạn 12:12 ngày mai!');
       if (!/(facebook\.com|fb\.watch|fb\.com)\//i.test(String(req.link || ''))) return err('Dán link bài Facebook hôm nay của bạn (bắt đầu bằng https://www.facebook.com/…).');
+      var owner = st.links[normLink(req.link)];
+      if (owner) return err(owner.ma === who.ma ? 'Link này bạn đổi chữ rồi nè 😄 Hôm nay dán link bài mới của bạn nha.' : 'Link này có chủ rồi nè 😄 Bạn dán link bài hôm nay của chính mình nha.');
       var strict = day >= CFG.strictFrom, mins = vnMinutes(now);
       if (!req.bu && strict && mins < CFG.onTimeFrom) return err('Video đăng lúc 12:12 — check-in sau khi đăng nhé.');
       var link = String(req.link).slice(0, 300);
@@ -354,7 +379,7 @@ var GC = (function () {
     };
   }
 
-  return { CFG: CFG, WORDS: WORDS, SCARCE: SCARCE, isKey: isKey, plan: plan, act: act, build: build, draw: draw, vnDay: vnDay, addDays: addDays };
+  return { CFG: CFG, WORDS: WORDS, SCARCE: SCARCE, isKey: isKey, plan: plan, normLink: normLink, act: act, build: build, draw: draw, vnDay: vnDay, addDays: addDays };
 })();
 
 </script>
@@ -480,6 +505,7 @@ function viewToday(v) {
       '<label for="link">Link bài Facebook hôm nay<input id="link" type="url" placeholder="https://www.facebook.com/…" autocomplete="off"></label>' +
       (canBu ? '<label class="check" for="bu"><input type="checkbox" id="bu"> Hôm qua mình quên check-in (check-in bù)</label>' : '') +
       '<button id="checkin"' + (S.busy ? ' disabled' : '') + '>Check-in nhận chữ</button>' +
+      '<p class="small">Dán link bài hôm nay của chính bạn nha 😄 Mỗi link chỉ đổi được 1 chữ, dán nhầm link bạn khác là bạn ấy hết lượt á.</p>' +
       '<p class="small muted">Từ 01/10: check-in 12:12 – 13:12 được chọn 1 trong 2 chữ.</p>';
   }
   return '<section class="card hero"><div class="row" style="justify-content:space-between"><h2>Chào ' + esc(v.me.name) + '</h2><span class="pill">' + dayLabel + '</span></div>' +
@@ -538,7 +564,7 @@ function viewRules() {
     '<li>Mỗi người nhận tối đa <b>2 phần quà</b>, mỗi từ ghép 1 lần. Đủ quà rồi thì <b>tặng chữ</b> cho đồng đội (1 chữ/ngày).</li>' +
     '<li>Cả nhóm đạt <b>300 · 700 · 1.200</b> lượt check-in → mỗi mốc ai đã chơi được <b>1 chữ vàng ★</b> (thay mọi chữ trừ chữ hiếm 🔑).</li>' +
     '<li>Thắp sáng cả câu <b>"Sạch từ hôm nay khỏe cho ngày mai"</b> → quay 2 hộp Umikai 100g cho mọi người đã chơi. Suất nào tới 01/11 chưa ai ghép cũng dồn vào lượt quay này.</li>' +
-    '<li>Link check-in phải là bài thật của bạn hôm đó; BTC đối chiếu với link trong nhóm Zalo, link sai sẽ bị thu lại chữ.</li>' +
+    '<li><b>Mỗi link bài chỉ đổi được 1 chữ</b> — dán đúng link bài hôm nay của chính bạn là chữ bay về túi liền 😄</li>' +
     '</ol></section><section class="card"><h3>12 từ và quà</h3><ol class="rules">' + w + '</ol><p class="small muted">Hạn ghép và tặng chữ: 01/11. Quà do Umikai tài trợ, BTC Siêu Thị Vietwise gửi.</p></section>';
 }
 
