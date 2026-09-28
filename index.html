@@ -268,6 +268,7 @@ var GC = (function () {
       } else if (e.t === 'rev') {
         var l = p.days[e.d];
         if (l) { delete p.days[e.d]; st.total--; if (l !== 'pending' && take(p, l)) issue(l, -1); }
+        if (p.pending && p.pending.d === e.d) { pend(p.pending.o, -1); p.pending = null; }
         var rk = p.dayLink[e.d];
         if (rk && st.links[rk] && st.links[rk].ma === e.ma && st.links[rk].d === e.d) delete st.links[rk];
         delete p.dayLink[e.d];
