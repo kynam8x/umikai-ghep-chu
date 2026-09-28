@@ -394,6 +394,11 @@ var LINK_HINTS = [
   'Chữ nhận ra chủ đó nha 😄 Mỗi link đổi được 1 chữ — dán đúng link bài hôm nay của bạn là chữ bay về túi liền.'
 ];
 var LINK_HINT = LINK_HINTS[Math.floor(Math.random() * LINK_HINTS.length)];
+// Ghi chú hiển thị cho từ cần giải thích (chỉ ở giao diện; câu theo NSX, Nam duyệt 28/09 19:03)
+var WORD_NOTES = {
+  KORUALAI: 'Cho thực phẩm cần bảo quản (rau củ cất tủ): không cần rửa lại bằng nước để Umikai phát huy tác dụng bảo quản. Thực phẩm chế biến ngay: có thể rửa lại bằng nước thường trước khi dùng.'
+};
+function wordNote(id) { return WORD_NOTES[id] ? '<p class="small muted" style="grid-column:1/-1">ℹ️ ' + esc(WORD_NOTES[id]) + '</p>' : ''; }
 var app = document.getElementById('app');
 
 function store(k, v) {
@@ -470,7 +475,7 @@ function send(req) {
     if (e.t === 'in' && e.l) modal('<p class="eyebrow">Chữ của ' + (e.bu ? 'hôm qua' : 'hôm nay') + '</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>' + (isKey(e.l) ? '<b>Chữ hiếm 🔑!</b> Cả game chỉ có vài chữ này.' : 'Đã bỏ vào túi chữ của bạn.') + '</p>');
     if (e.t === 'pick') modal('<p class="eyebrow">Bạn đã chọn</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>Cảm ơn bạn đăng đúng giờ 12:12!</p>');
     if (e.t === 'give') toast('Đã tặng chữ ' + e.l + ' 💚');
-    if (e.t === 'win') { var w = GC.WORDS.filter(function (x) { return x.id === e.w; })[0]; modal('<p class="eyebrow">Ghép thành công</p><h2>' + esc(w.label) + ' 🎉</h2><p>Quà: <b>' + esc(w.prize) + '</b>. BTC sẽ nhắn bạn để gửi quà.</p>'); }
+    if (e.t === 'win') { var w = GC.WORDS.filter(function (x) { return x.id === e.w; })[0]; modal('<p class="eyebrow">Ghép thành công</p><h2>' + esc(w.label) + ' 🎉</h2><p>Quà: <b>' + esc(w.prize) + '</b>. BTC sẽ nhắn bạn để gửi quà.</p>' + (WORD_NOTES[w.id] ? '<p class="small muted">ℹ️ ' + esc(WORD_NOTES[w.id]) + '</p>' : '')); }
   });
 }
 
@@ -531,7 +536,7 @@ function viewBag(v) {
     var can = w.ok && !won && left > 0 && v.me.wins.length < v.cfg.maxPrize && !S.busy;
     return '<div class="word"><div class="tiles">' + w.cells.map(function (c) { return tile(c.s === 'star' ? '★' : c.c, c.s === 'have' ? '' : c.s, 0); }).join('') + '</div>' +
       '<button class="ghep" data-w="' + w.id + '"' + (can ? '' : ' disabled') + '>Ghép</button>' +
-      '<div class="meta"><span><span class="lv">' + (i + 1) + '. ' + esc(w.label) + '</span> · ' + esc(w.prize) + '</span>' + status + '</div></div>';
+      '<div class="meta"><span><span class="lv">' + (i + 1) + '. ' + esc(w.label) + '</span> · ' + esc(w.prize) + '</span>' + status + '</div>' + wordNote(w.id) + '</div>';
   }).join('');
   var mates = v.mates.map(function (m) { return '<option value="' + esc(m.ma) + '">' + esc(m.name) + '</option>'; }).join('');
   var letters = bag.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
@@ -564,7 +569,7 @@ function feedCard(v) {
 }
 
 function viewRules() {
-  var w = GC.WORDS.map(function (x, i) { return '<li><b>' + esc(x.label) + '</b> — ' + esc(x.prize) + ' · ' + x.n + ' suất</li>'; }).join('');
+  var w = GC.WORDS.map(function (x, i) { return '<li><b>' + esc(x.label) + '</b> — ' + esc(x.prize) + ' · ' + x.n + ' suất' + (WORD_NOTES[x.id] ? '<br><span class="small muted">ℹ️ ' + esc(WORD_NOTES[x.id]) + '</span>' : '') + '</li>'; }).join('');
   return '<section class="card"><h2>Luật chơi</h2><ol class="rules">' +
     '<li><b>Mỗi ngày đăng bài/video</b> (25/09 – 30/10) → vào đây dán link bài → nhận <b>1 chữ ngẫu nhiên</b>.</li>' +
     '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b> được <b>chọn 1 trong 2 chữ</b>. Quên check-in? Hôm sau bấm "check-in bù" cho hôm qua.</li>' +
