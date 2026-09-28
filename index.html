@@ -19,7 +19,9 @@
     --display: "Baloo 2", "Be Vietnam Pro", system-ui, sans-serif;
     --body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  html, body { background: var(--paper); color: var(--ink); }
+  [hidden] { display: none !important; } /* trang đăng độc lập (GitHub Pages, Apps Script) không có sẵn quy tắc này như Artifact */
+  html, body { background: var(--paper); color: var(--ink); margin: 0; }
+  *, *::before, *::after { box-sizing: border-box; }
   body { font-family: var(--body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 0 96px; }
   .wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
   h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0; text-wrap: balance; }
