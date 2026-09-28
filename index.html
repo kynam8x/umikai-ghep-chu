@@ -386,6 +386,13 @@ var GC = (function () {
 <script>
 var ENDPOINT = "https://script.google.com/macros/s/AKfycbyrYS0NNsm3_fGEjcDbN-vWmHiW39VY_KEkGHXzNXVLEQz3u0AVvkXqF8sv_NOzD_w/exec";
 var S = { creds: null, v: null, tab: 'today', busy: false };
+// 3 lời nhắc cùng 1 ý (link bài hôm nay của chính mình · mỗi link 1 chữ), mỗi lần mở game chọn ngẫu nhiên 1 câu
+var LINK_HINTS = [
+  'Dán link bài hôm nay của chính bạn nha 😄 Mỗi link chỉ đổi được 1 chữ, dán nhầm link bạn khác là bạn ấy hết lượt á.',
+  'Link bài của bạn, chữ của bạn 😄 Mỗi link chỉ đổi 1 chữ thôi, nhớ dán đúng bài hôm nay để chữ về đúng túi nha!',
+  'Chữ nhận ra chủ đó nha 😄 Mỗi link đổi được 1 chữ — dán đúng link bài hôm nay của bạn là chữ bay về túi liền.'
+];
+var LINK_HINT = LINK_HINTS[Math.floor(Math.random() * LINK_HINTS.length)];
 var app = document.getElementById('app');
 
 function store(k, v) {
@@ -505,7 +512,7 @@ function viewToday(v) {
       '<label for="link">Link bài Facebook hôm nay<input id="link" type="url" placeholder="https://www.facebook.com/…" autocomplete="off"></label>' +
       (canBu ? '<label class="check" for="bu"><input type="checkbox" id="bu"> Hôm qua mình quên check-in (check-in bù)</label>' : '') +
       '<button id="checkin"' + (S.busy ? ' disabled' : '') + '>Check-in nhận chữ</button>' +
-      '<p class="small">Dán link bài hôm nay của chính bạn nha 😄 Mỗi link chỉ đổi được 1 chữ, dán nhầm link bạn khác là bạn ấy hết lượt á.</p>' +
+      '<p class="small">' + LINK_HINT + '</p>' +
       '<p class="small muted">Từ 01/10: check-in 12:12 – 13:12 được chọn 1 trong 2 chữ.</p>';
   }
   return '<section class="card hero"><div class="row" style="justify-content:space-between"><h2>Chào ' + esc(v.me.name) + '</h2><span class="pill">' + dayLabel + '</span></div>' +
