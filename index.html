@@ -466,6 +466,7 @@ function modal(html) {
 
 function send(req) {
   if (S.busy) return; S.busy = true; render();
+  if (req.a !== 'state') toast('Đang gửi lên máy chủ… đợi vài giây nha');
   call(req).then(function (res) {
     S.busy = false;
     if (!res.ok) { toast(res.error); if (!S.v) { S.creds = null; store('gc-creds', null); } render(); return; }
@@ -517,7 +518,7 @@ function viewToday(v) {
     body = '<p class="eyebrow">Đăng video xong · check-in nhận chữ</p>' +
       '<label for="link">Link bài Facebook hôm nay<input id="link" type="url" placeholder="https://www.facebook.com/…" autocomplete="off"></label>' +
       (canBu ? '<label class="check" for="bu"><input type="checkbox" id="bu"> Hôm qua mình quên check-in (check-in bù)</label>' : '') +
-      '<button id="checkin"' + (S.busy ? ' disabled' : '') + '>Check-in nhận chữ</button>' +
+      '<button id="checkin"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Đang gửi… đợi vài giây nha' : 'Check-in nhận chữ') + '</button>' +
       '<p class="small">' + LINK_HINT + '</p>' +
       '<p class="small muted">Từ 01/10: check-in 12:12 – 13:12 được chọn 1 trong 2 chữ.</p>';
   }
@@ -533,7 +534,9 @@ function viewBag(v) {
   var words = v.words.map(function (w, i) {
     var won = v.me.wins.indexOf(w.id) > -1, left = w.n - w.done;
     var status = won ? '<span class="pill done">Bạn đã ghép</span>' : left <= 0 ? '<span class="pill done">Hết suất</span>' : '<span class="pill' + (/100g/.test(w.prize) ? ' gold' : '') + '">còn ' + left + '/' + w.n + ' suất</span>';
-    var can = w.ok && !won && left > 0 && v.me.wins.length < v.cfg.maxPrize && !S.busy;
+    var full = v.me.wins.length >= v.cfg.maxPrize;
+    var can = w.ok && !won && left > 0 && !full && !S.busy;
+    if (w.ok && !won && left > 0 && full) status = '<span class="pill done">Bạn đã đủ ' + v.cfg.maxPrize + ' quà — tặng chữ cho bạn nhé 💚</span>';
     return '<div class="word"><div class="tiles">' + w.cells.map(function (c) { return tile(c.s === 'star' ? '★' : c.c, c.s === 'have' ? '' : c.s, 0); }).join('') + '</div>' +
       '<button class="ghep" data-w="' + w.id + '"' + (can ? '' : ' disabled') + '>Ghép</button>' +
       '<div class="meta"><span><span class="lv">' + (i + 1) + '. ' + esc(w.label) + '</span> · ' + esc(w.prize) + '</span>' + status + '</div>' + wordNote(w.id) + '</div>';
