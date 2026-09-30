@@ -157,20 +157,20 @@ var GC = (function () {
     teamPrize: '2 hộp Umikai 100g + mọi suất chưa ai ghép tới 01/11 — quay số cho mọi người đã check-in (mỗi ngày check-in = 1 phiếu)'
   };
 
-  // 12 từ cá nhân (Nam chốt 28/09), dễ → khó. Quà cá nhân = 20×20g + 8×100g; 2×100g còn lại là quà chung câu slogan.
+  // 12 từ cá nhân (Nam chốt 28/09), dễ → khó. `open` = ngày bắt đầu được ghép (Nam chốt 30/09: mở kho theo tuần để quà còn tới cuối tháng). Quà cá nhân = 20×20g + 8×100g; 2×100g còn lại là quà chung câu slogan.
   var WORDS = [
-    { id: 'GION', label: 'GIÒN', n: 4, prize: '1 hộp Umikai 20g' },
-    { id: 'NGON', label: 'NGON', n: 4, prize: '1 hộp Umikai 20g' },
-    { id: 'STVW', label: 'STVW', n: 3, prize: '1 hộp Umikai 20g' },
-    { id: 'PH12', label: 'pH 12', n: 3, prize: '1 hộp Umikai 20g' },
-    { id: 'DAISU', label: 'ĐẠI SỨ', n: 3, prize: '1 hộp Umikai 20g' },
-    { id: 'RUARAU', label: 'RỬA RAU', n: 3, prize: '1 hộp Umikai 20g' },
-    { id: 'UMIKAI', label: 'UMIKAI', n: 2, prize: '1 hộp Umikai 100g' },
-    { id: 'IONCANXI', label: 'ION CANXI', n: 1, prize: '1 hộp Umikai 100g' },
-    { id: 'BOCCANXI', label: 'BỌC CANXI', n: 1, prize: '1 hộp Umikai 100g' },
-    { id: 'KORUALAI', label: 'KO RỬA LẠI', n: 1, prize: '1 hộp Umikai 100g' },
-    { id: 'BAOQUANTP', label: 'BẢO QUẢN TP', n: 1, prize: '1 hộp Umikai 100g' },
-    { id: 'SONGCOHIEU', label: 'SỐNG CÓ HIẾU', n: 1, prize: '2 hộp Umikai 100g' }
+    { id: 'GION', open: '2026-09-25', label: 'GIÒN', n: 4, prize: '1 hộp Umikai 20g' },
+    { id: 'NGON', open: '2026-09-25', label: 'NGON', n: 4, prize: '1 hộp Umikai 20g' },
+    { id: 'STVW', open: '2026-10-08', label: 'STVW', n: 3, prize: '1 hộp Umikai 20g' },
+    { id: 'PH12', open: '2026-10-08', label: 'pH 12', n: 3, prize: '1 hộp Umikai 20g' },
+    { id: 'DAISU', open: '2026-10-08', label: 'ĐẠI SỨ', n: 3, prize: '1 hộp Umikai 20g' },
+    { id: 'RUARAU', open: '2026-10-08', label: 'RỬA RAU', n: 3, prize: '1 hộp Umikai 20g' },
+    { id: 'UMIKAI', open: '2026-10-15', label: 'UMIKAI', n: 2, prize: '1 hộp Umikai 100g' },
+    { id: 'IONCANXI', open: '2026-10-15', label: 'ION CANXI', n: 1, prize: '1 hộp Umikai 100g' },
+    { id: 'BOCCANXI', open: '2026-10-15', label: 'BỌC CANXI', n: 1, prize: '1 hộp Umikai 100g' },
+    { id: 'KORUALAI', open: '2026-10-22', label: 'KO RỬA LẠI', n: 1, prize: '1 hộp Umikai 100g' },
+    { id: 'BAOQUANTP', open: '2026-10-22', label: 'BẢO QUẢN TP', n: 1, prize: '1 hộp Umikai 100g' },
+    { id: 'SONGCOHIEU', open: '2026-10-22', label: 'SỐNG CÓ HIẾU', n: 1, prize: '2 hộp Umikai 100g' }
   ];
   // Chữ hiếm 🔑: kho mỗi chữ = tổng (số suất × số lần xuất hiện) của các từ chứa nó → luôn đủ chữ cho mọi suất, không thừa nhiều.
   var SCARCE = ['G', 'W', '1', 'D', 'M', 'X', 'L', 'Q', 'E']; // R để chữ thường: RỬA RAU cần 2 R, để hiếm thì mô phỏng gần như không ai ghép được
@@ -349,6 +349,7 @@ var GC = (function () {
       if (today > CFG.ghepEnd) return err('Game đã kết thúc.');
       if (p.gave[today]) return err('Mỗi ngày tặng được 1 chữ. Mai tặng tiếp nhé!');
       if (!(p.bag[req.l] > 0)) return err('Bạn không có chữ ' + req.l + '.');
+      if (KEYS[req.l]) return err('Chữ hiếm 🔑 giữ lại để tự ghép nha, chỉ tặng được chữ thường thôi 😄');
       push({ t: 'give', to: to.ma, l: req.l, d: today });
     } else if (req.a === 'ghep') {
       var w = WORDS.filter(function (x) { return x.id === req.w; })[0];
@@ -356,6 +357,7 @@ var GC = (function () {
       if (today > CFG.ghepEnd) return err('Game đã kết thúc.');
       if (p.wins.indexOf(w.id) > -1) return err('Bạn đã ghép từ này rồi.');
       if (p.wins.length >= CFG.maxPrize) return err('Bạn đã nhận đủ ' + CFG.maxPrize + ' phần quà. Hãy tặng chữ cho đồng đội nhé 💚');
+      if (today < w.open) return err(w.label + ' mở ghép từ ' + w.open.slice(8) + '/' + w.open.slice(5, 7) + ' nha 😄 Giữ chữ lại tới hôm đó.');
       if (st.done[w.id] >= w.n) return err('Từ này đã hết suất quà.');
       if (!plan(p, w).ok) return err('Chưa đủ chữ để ghép ' + w.label + '.');
       push({ t: 'win', w: w.id });
@@ -371,7 +373,7 @@ var GC = (function () {
     var p = st.p[ma], today = vnDay(now);
     return {
       me: { ma: ma, name: p.name, bag: p.bag, stars: p.stars, pending: p.pending, days: Object.keys(p.days), wins: p.wins, gaveToday: !!p.gave[today] },
-      words: WORDS.map(function (w) { var pl = plan(p, w); return { id: w.id, label: w.label, keys: w.keys, n: w.n, done: st.done[w.id], prize: w.prize, cells: pl.cells, ok: pl.ok }; }),
+      words: WORDS.map(function (w) { var pl = plan(p, w); return { id: w.id, label: w.label, keys: w.keys, open: w.open, isOpen: today >= w.open, n: w.n, done: st.done[w.id], prize: w.prize, cells: pl.cells, ok: pl.ok }; }),
       team: { total: st.total, reached: st.reached, milestones: CFG.milestones, players: Object.keys(st.p).length },
       mates: Object.keys(st.p).filter(function (k) { return k !== ma; }).map(function (k) { return { ma: k, name: st.p[k].name }; }),
       feed: st.feed.slice(-12).reverse(),
@@ -535,17 +537,18 @@ function viewBag(v) {
     var won = v.me.wins.indexOf(w.id) > -1, left = w.n - w.done;
     var status = won ? '<span class="pill done">Bạn đã ghép</span>' : left <= 0 ? '<span class="pill done">Hết suất</span>' : '<span class="pill' + (/100g/.test(w.prize) ? ' gold' : '') + '">còn ' + left + '/' + w.n + ' suất</span>';
     var full = v.me.wins.length >= v.cfg.maxPrize;
-    var can = w.ok && !won && left > 0 && !full && !S.busy;
+    var can = w.ok && !won && left > 0 && !full && w.isOpen && !S.busy;
+    if (!won && left > 0 && !w.isOpen) status = '<span class="pill">Mở ghép từ ' + dmy(w.open) + '</span>';
     if (w.ok && !won && left > 0 && full) status = '<span class="pill done">Bạn đã đủ ' + v.cfg.maxPrize + ' quà — tặng chữ cho bạn nhé 💚</span>';
     return '<div class="word"><div class="tiles">' + w.cells.map(function (c) { return tile(c.s === 'star' ? '★' : c.c, c.s === 'have' ? '' : c.s, 0); }).join('') + '</div>' +
       '<button class="ghep" data-w="' + w.id + '"' + (can ? '' : ' disabled') + '>Ghép</button>' +
       '<div class="meta"><span><span class="lv">' + (i + 1) + '. ' + esc(w.label) + '</span> · ' + esc(w.prize) + '</span>' + status + '</div>' + wordNote(w.id) + '</div>';
   }).join('');
   var mates = v.mates.map(function (m) { return '<option value="' + esc(m.ma) + '">' + esc(m.name) + '</option>'; }).join('');
-  var letters = bag.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
+  var letters = bag.filter(function (c) { return !isKey(c); }).map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
   return '<section class="card"><div class="row" style="justify-content:space-between"><h3>Túi chữ của bạn</h3><span class="small muted">🔑 = chữ hiếm · ★ = chữ vàng</span></div><div class="tiles">' + bagHtml + '</div></section>' +
     '<section class="card"><h3>12 từ · quà từ nhỏ đến lớn</h3><p class="small muted">Mỗi người nhận tối đa ' + v.cfg.maxPrize + ' phần quà (đã nhận ' + v.me.wins.length + '). ★ thay được mọi chữ trừ chữ hiếm 🔑.</p>' + words + '</section>' +
-    '<section class="card"><h3>Tặng chữ cho đồng đội 💚</h3><p class="small muted">Mỗi ngày tặng được 1 chữ. Chữ trùng, chữ bạn không cần, hay chữ hiếm bạn không dùng tới — tặng bạn đang thiếu.</p>' +
+    '<section class="card"><h3>Tặng chữ cho đồng đội 💚</h3><p class="small muted">Mỗi ngày tặng được 1 chữ. Chữ trùng hay chữ bạn không cần — tặng bạn đang thiếu. Chữ hiếm 🔑 giữ lại để tự ghép, không tặng được.</p>' +
     (bag.length ? '<div class="row"><select id="giveTo" class="grow" aria-label="Tặng cho ai">' + mates + '</select><select id="giveL" aria-label="Chữ muốn tặng" style="width:90px">' + letters + '</select>' +
       '<button id="give"' + (v.me.gaveToday || S.busy ? ' disabled' : '') + '>' + (v.me.gaveToday ? 'Mai tặng tiếp' : 'Tặng') + '</button></div>' : '<p class="muted">Chưa có chữ để tặng.</p>') + '</section>';
 }
@@ -577,7 +580,8 @@ function viewRules() {
     '<li><b>Mỗi ngày đăng bài/video</b> (25/09 – 30/10) → vào đây dán link bài → nhận <b>1 chữ ngẫu nhiên</b>.</li>' +
     '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b> được <b>chọn 1 trong 2 chữ</b>. Quên check-in? Hôm sau bấm "check-in bù" cho hôm qua.</li>' +
     '<li>Gom đủ chữ để <b>ghép 1 trong 12 từ</b>. Mỗi từ có ít nhất 1 <b>chữ hiếm 🔑</b> (G, W, 1, D, M, X, L, Q, E) — chữ hiếm chỉ phát đủ cho số suất quà, thả dần tới 25/10.</li>' +
-    '<li>Mỗi người nhận tối đa <b>2 phần quà</b>, mỗi từ ghép 1 lần. Đủ quà rồi thì <b>tặng chữ</b> cho đồng đội (1 chữ/ngày).</li>' +
+    '<li><b>Kho quà mở theo tuần:</b> GIÒN, NGON mở ngay · từ 08/10 thêm STVW, pH 12, ĐẠI SỨ, RỬA RAU · từ 15/10 thêm UMIKAI, ION CANXI, BỌC CANXI · từ 22/10 thêm KO RỬA LẠI, BẢO QUẢN TP, SỐNG CÓ HIẾU. Quà lớn luôn còn tới tuần cuối!</li>' +
+    '<li>Mỗi người nhận tối đa <b>2 phần quà</b>, mỗi từ ghép 1 lần. Đủ quà rồi thì <b>tặng chữ thường</b> cho đồng đội (1 chữ/ngày; chữ hiếm 🔑 không tặng được).</li>' +
     '<li>Cả nhóm đạt <b>300 · 700 · 1.200</b> lượt check-in → mỗi mốc ai đã chơi được <b>1 chữ vàng ★</b> (thay mọi chữ trừ chữ hiếm 🔑).</li>' +
     '<li>Thắp sáng cả câu <b>"Sạch từ hôm nay khỏe cho ngày mai"</b> → quay 2 hộp Umikai 100g cho mọi người đã chơi. Suất nào tới 01/11 chưa ai ghép cũng dồn vào lượt quay này.</li>' +
     '<li><b>Mỗi link bài chỉ đổi được 1 chữ</b> — dán đúng link bài hôm nay của chính bạn là chữ bay về túi liền 😄</li>' +
