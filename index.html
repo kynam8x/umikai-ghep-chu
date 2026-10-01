@@ -22,7 +22,7 @@
   [hidden] { display: none !important; } /* trang đăng độc lập (GitHub Pages, Apps Script) không có sẵn quy tắc này như Artifact */
   html, body { background: var(--paper); color: var(--ink); margin: 0; }
   *, *::before, *::after { box-sizing: border-box; }
-  body { font-family: var(--body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 0 96px; }
+  body { font-family: var(--body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 0 120px; }
   .wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
   h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0; text-wrap: balance; }
   h2 { font-size: 22px; } h3 { font-size: 17px; }
@@ -94,6 +94,16 @@
   .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--or); }
   .ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--grey); font-variant-numeric: tabular-nums; }
 
+  .bagbar { padding: 12px 14px; gap: 8px; }
+  .bagbar .tiles { flex-wrap: nowrap; overflow-x: auto; padding: 6px 4px 8px 0; scrollbar-width: none; }
+  .bagbar .tile { --s: 36px; flex: 0 0 auto; }
+  .daypick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .daypick button { background: rgba(255,255,255,.18); color: var(--white); border: 2px solid rgba(255,255,255,.5); border-radius: 12px; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; font-size: 14px; line-height: 1.25; }
+  .daypick button small { font-weight: 500; font-size: 12px; color: #FFE2CF; }
+  .daypick button[aria-pressed="true"] { background: var(--white); color: var(--or-deep); border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold); }
+  .daypick button[aria-pressed="true"]::before { content: "✓ Đang chọn"; font-size: 11px; font-weight: 700; color: var(--gold-deep); }
+  .daypick button[aria-pressed="true"] small { color: var(--grey); }
+  .bu-note { background: var(--gold-soft); color: var(--gold-deep); border-radius: 10px; padding: 8px 10px; font-size: 13px; }
   .feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
   .feed li { display: flex; gap: 10px; }
   .feed time { color: var(--grey); font-size: 12px; min-width: 42px; font-variant-numeric: tabular-nums; padding-top: 2px; }
@@ -101,13 +111,13 @@
   ol.rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
   ol.rules b { color: var(--or-deep); }
 
-  nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--white); border-top: 1px solid var(--line);
-    display: grid; grid-template-columns: repeat(4, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5; }
-  nav.tabs button { background: transparent; color: var(--grey); border-radius: 0; padding: 10px 4px 12px; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  nav.tabs button b { font-size: 20px; line-height: 1; }
-  nav.tabs button[aria-current="page"] { color: var(--or-deep); box-shadow: inset 0 3px 0 var(--or); }
+  nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(43,36,32,.08);
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 5; }
+  nav.tabs button { background: transparent; color: var(--grey); border-radius: 14px; padding: 8px 2px 8px; min-height: 66px; font-size: 15px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  nav.tabs button b { font-size: 28px; line-height: 1; }
+  nav.tabs button[aria-current="page"] { color: var(--or-deep); background: var(--or-soft); box-shadow: inset 0 -4px 0 var(--or); }
 
-  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); max-width: 528px; margin: 0 auto;
+  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); max-width: 528px; margin: 0 auto;
     background: var(--ink); color: var(--white); padding: 12px 16px; border-radius: 12px; font-size: 14px; z-index: 9; }
   .modal { position: fixed; inset: 0; background: rgba(43,36,32,.55); display: grid; place-items: center; padding: 16px; z-index: 10; }
   .modal .card { max-width: 380px; width: 100%; align-items: center; text-align: center; }
@@ -130,7 +140,7 @@
 </div>
 <nav class="tabs" id="tabs" hidden>
   <button data-tab="today"><b>☀</b>Hôm nay</button>
-  <button data-tab="bag"><b>🔤</b>Túi chữ</button>
+  <button data-tab="bag"><b>🎁</b>Ghép quà</button>
   <button data-tab="team"><b>🤝</b>Cả nhóm</button>
   <button data-tab="rules"><b>📜</b>Luật chơi</button>
 </nav>
@@ -148,7 +158,7 @@ var GC = (function () {
     end: '2026-10-30',          // ngày cuối được check-in (V30)
     strictFrom: '2026-10-01',   // từ ngày này: chỉ check-in sau 12:12, check-in 12:12–13:12 = "đúng giờ" (chọn 1 trong 2 chữ)
     releaseEnd: '2026-10-25',   // chữ hiếm 🔑 được thả dần tới ngày này
-    ghepEnd: '2026-11-01',      // hạn cuối ghép chữ / tặng chữ
+    ghepEnd: '2026-11-01',      // hạn cuối ghép chữ
     onTimeFrom: 12 * 60 + 12,
     onTimeTo: 13 * 60 + 12,
     maxPrize: 2,                // mỗi người nhận tối đa 2 phần quà → quà đến tay nhiều người hơn
@@ -326,9 +336,9 @@ var GC = (function () {
     if (req.a === 'checkin') {
       var day = req.bu ? addDays(today, -1) : today;
       if (day < CFG.start) return err('Game bắt đầu từ ' + CFG.start.split('-').reverse().join('/') + '.');
-      if (day > CFG.end) return err('Đã hết ngày check-in (30/10). Bạn vẫn ghép và tặng chữ được tới 01/11.');
+      if (day > CFG.end) return err('Đã hết ngày check-in (30/10). Bạn vẫn ghép chữ được tới 01/11.');
       if (p.days[day]) return err(req.bu ? 'Hôm qua bạn đã check-in rồi.' : 'Hôm nay bạn đã check-in rồi. Hẹn bạn 12:12 ngày mai!');
-      if (!/(facebook\.com|fb\.watch|fb\.com)\//i.test(String(req.link || ''))) return err('Dán link bài Facebook hôm nay của bạn (bắt đầu bằng https://www.facebook.com/…).');
+      if (!/(facebook\.com|fb\.watch|fb\.com)\//i.test(String(req.link || ''))) return err('Dán link bài Facebook ' + (req.bu ? 'hôm qua' : 'hôm nay') + ' của bạn (bắt đầu bằng https://www.facebook.com/…).');
       var owner = st.links[normLink(req.link)];
       if (owner) return err(owner.ma === who.ma ? 'Link này bạn đổi chữ rồi nè 😄 Hôm nay dán link bài mới của bạn nha.' : 'Link này có chủ rồi nè 😄 Bạn dán link bài hôm nay của chính mình nha.');
       var strict = day >= CFG.strictFrom, mins = vnMinutes(now);
@@ -343,20 +353,12 @@ var GC = (function () {
     } else if (req.a === 'pick') {
       if (!p.pending || p.pending.o.indexOf(req.l) < 0) return err('Không có chữ để chọn.');
       push({ t: 'pick', l: req.l });
-    } else if (req.a === 'give') {
-      var to = (players || []).filter(function (x) { return x.ma === req.to; })[0];
-      if (!to || to.ma === who.ma) return err('Chọn một đồng đội để tặng.');
-      if (today > CFG.ghepEnd) return err('Game đã kết thúc.');
-      if (p.gave[today]) return err('Mỗi ngày tặng được 1 chữ. Mai tặng tiếp nhé!');
-      if (!(p.bag[req.l] > 0)) return err('Bạn không có chữ ' + req.l + '.');
-      if (KEYS[req.l]) return err('Chữ hiếm 🔑 giữ lại để tự ghép nha, chỉ tặng được chữ thường thôi 😄');
-      push({ t: 'give', to: to.ma, l: req.l, d: today });
     } else if (req.a === 'ghep') {
       var w = WORDS.filter(function (x) { return x.id === req.w; })[0];
       if (!w) return err('Không có từ này.');
       if (today > CFG.ghepEnd) return err('Game đã kết thúc.');
       if (p.wins.indexOf(w.id) > -1) return err('Bạn đã ghép từ này rồi.');
-      if (p.wins.length >= CFG.maxPrize) return err('Bạn đã nhận đủ ' + CFG.maxPrize + ' phần quà. Hãy tặng chữ cho đồng đội nhé 💚');
+      if (p.wins.length >= CFG.maxPrize) return err('Bạn đã nhận đủ ' + CFG.maxPrize + ' phần quà rồi nè 💚');
       if (today < w.open) return err(w.label + ' mở ghép từ ' + w.open.slice(8) + '/' + w.open.slice(5, 7) + ' nha 😄 Giữ chữ lại tới hôm đó.');
       if (st.done[w.id] >= w.n) return err('Từ này đã hết suất quà.');
       if (!plan(p, w).ok) return err('Chưa đủ chữ để ghép ' + w.label + '.');
@@ -372,10 +374,9 @@ var GC = (function () {
   function view(st, ma, now) {
     var p = st.p[ma], today = vnDay(now);
     return {
-      me: { ma: ma, name: p.name, bag: p.bag, stars: p.stars, pending: p.pending, days: Object.keys(p.days), wins: p.wins, gaveToday: !!p.gave[today] },
+      me: { ma: ma, name: p.name, bag: p.bag, stars: p.stars, pending: p.pending, days: Object.keys(p.days), wins: p.wins },
       words: WORDS.map(function (w) { var pl = plan(p, w); return { id: w.id, label: w.label, keys: w.keys, open: w.open, isOpen: today >= w.open, n: w.n, done: st.done[w.id], prize: w.prize, cells: pl.cells, ok: pl.ok }; }),
       team: { total: st.total, reached: st.reached, milestones: CFG.milestones, players: Object.keys(st.p).length },
-      mates: Object.keys(st.p).filter(function (k) { return k !== ma; }).map(function (k) { return { ma: k, name: st.p[k].name }; }),
       feed: st.feed.slice(-12).reverse(),
       today: today, checkedToday: !!p.days[today], checkedYesterday: !!p.days[addDays(today, -1)],
       cfg: { start: CFG.start, end: CFG.end, strictFrom: CFG.strictFrom, slogan: CFG.slogan, teamPrize: CFG.teamPrize, maxPrize: CFG.maxPrize, totalDays: totalDays() }
@@ -388,7 +389,7 @@ var GC = (function () {
 </script>
 <script>
 var ENDPOINT = "https://script.google.com/macros/s/AKfycbyrYS0NNsm3_fGEjcDbN-vWmHiW39VY_KEkGHXzNXVLEQz3u0AVvkXqF8sv_NOzD_w/exec";
-var S = { creds: null, v: null, tab: 'today', busy: false };
+var S = { creds: null, v: null, tab: 'today', busy: false, bu: 0, link: '' };
 // 3 lời nhắc cùng 1 ý (link bài hôm nay của chính mình · mỗi link 1 chữ), mỗi lần mở game chọn ngẫu nhiên 1 câu
 var LINK_HINTS = [
   'Dán link bài hôm nay của chính bạn nha 😄 Mỗi link chỉ đổi được 1 chữ, dán nhầm link bạn khác là bạn ấy hết lượt á.',
@@ -428,7 +429,6 @@ var Demo = (function () {
     while (day < today) {
       ev.push({ t: 'in', ma: 'UMK-DEMO', d: day, l: mine[i++] || 'A', link: 'https://www.facebook.com/', at: at(day, 760).toISOString() });
       matesDay(ev, day, r);
-      if (day === '2026-10-04') ev.push({ t: 'give', ma: 'UMK-A03', to: 'UMK-A07', l: 'A', d: day, at: at(day, 1200).toISOString() });
       day = GC.addDays(day, 1);
     }
     return { ev: ev, day: today };
@@ -472,12 +472,13 @@ function send(req) {
   call(req).then(function (res) {
     S.busy = false;
     if (!res.ok) { toast(res.error); if (!S.v) { S.creds = null; store('gc-creds', null); } render(); return; }
-    S.v = res.view; render();
+    S.v = res.view;
     var e = res.last;
+    if (e && e.t === 'in') { S.bu = 0; S.link = ''; }
+    render();
     if (!e) return;
     if (e.t === 'in' && e.l) modal('<p class="eyebrow">Chữ của ' + (e.bu ? 'hôm qua' : 'hôm nay') + '</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>' + (isKey(e.l) ? '<b>Chữ hiếm 🔑!</b> Cả game chỉ có vài chữ này.' : 'Đã bỏ vào túi chữ của bạn.') + '</p>');
     if (e.t === 'pick') modal('<p class="eyebrow">Bạn đã chọn</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>Cảm ơn bạn đăng đúng giờ 12:12!</p>');
-    if (e.t === 'give') toast('Đã tặng chữ ' + e.l + ' 💚');
     if (e.t === 'win') { var w = GC.WORDS.filter(function (x) { return x.id === e.w; })[0]; modal('<p class="eyebrow">Ghép thành công</p><h2>' + esc(w.label) + ' 🎉</h2><p>Quà: <b>' + esc(w.prize) + '</b>. BTC sẽ nhắn bạn để gửi quà.</p>' + (WORD_NOTES[w.id] ? '<p class="small muted">ℹ️ ' + esc(WORD_NOTES[w.id]) + '</p>' : '')); }
   });
 }
@@ -500,7 +501,7 @@ function hint(v) {
     var miss = w.cells.filter(function (c) { return c.s === 'miss'; }).map(function (c) { return c.c; });
     if (!best || miss.length < best.miss.length) best = { w: w, miss: miss };
   });
-  if (!best) return 'Bạn đã ghép hết các từ còn suất. Tặng chữ giúp đồng đội nhé 💚';
+  if (!best) return 'Bạn đã ghép hết các từ còn suất. Giỏi quá! 💚';
   if (!best.miss.length) return 'Bạn đã đủ chữ để ghép <b>' + esc(best.w.label) + '</b> — vào Túi chữ bấm Ghép!';
   return 'Còn thiếu <b>' + best.miss.map(esc).join(', ') + '</b> để ghép <b>' + esc(best.w.label) + '</b>.';
 }
@@ -516,55 +517,66 @@ function viewToday(v) {
   } else if (v.checkedToday) {
     body = '<p class="eyebrow">Đã check-in hôm nay</p><p>Chữ hôm nay đã vào túi. Hẹn bạn <b>12:12</b> ngày mai!</p>';
   } else {
-    var canBu = !v.checkedYesterday && GC.addDays(v.today, -1) >= v.cfg.start && GC.addDays(v.today, -1) <= v.cfg.end;
+    var yd = GC.addDays(v.today, -1);
+    var canBu = !v.checkedYesterday && yd >= v.cfg.start && yd <= v.cfg.end;
+    if (!canBu) S.bu = 0;
+    var bu = S.bu ? 1 : 0;
     body = '<p class="eyebrow">Đăng video xong · check-in nhận chữ</p>' +
-      '<label for="link">Link bài Facebook hôm nay<input id="link" type="url" placeholder="https://www.facebook.com/…" autocomplete="off"></label>' +
-      (canBu ? '<label class="check" for="bu"><input type="checkbox" id="bu"> Hôm qua mình quên check-in (check-in bù)</label>' : '') +
-      '<button id="checkin"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Đang gửi… đợi vài giây nha' : 'Check-in nhận chữ') + '</button>' +
+      (canBu ? '<p><b>Bạn check-in cho bài ngày nào?</b></p><div class="daypick">' +
+        '<button type="button" class="dayopt" data-bu="0" aria-pressed="' + (!bu) + '">Bài hôm nay<small>' + dmy(v.today) + '</small></button>' +
+        '<button type="button" class="dayopt" data-bu="1" aria-pressed="' + (!!bu) + '">Bài hôm qua (mình quên)<small>' + dmy(yd) + ' · check-in bù</small></button></div>' +
+        (bu ? '<p class="bu-note">Dán link bài bạn đã đăng <b>hôm qua (' + dmy(yd) + ')</b>. Vẫn nhận 1 chữ ngẫu nhiên.</p>' : '') : '') +
+      '<label for="link">Link bài Facebook ' + (bu ? 'hôm qua' : 'hôm nay') + '<input id="link" type="url" placeholder="https://www.facebook.com/…" autocomplete="off" value="' + esc(S.link) + '"></label>' +
+      '<button id="checkin"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Đang gửi… đợi vài giây nha' : bu ? 'Check-in bù cho hôm qua' : 'Check-in bài hôm nay') + '</button>' +
       '<p class="small">' + LINK_HINT + '</p>' +
-      '<p class="small muted">Từ 01/10: check-in 12:12 – 13:12 được chọn 1 trong 2 chữ.</p>';
+      (bu ? '' : '<p class="small muted">Từ 01/10: check-in 12:12 – 13:12 được chọn 1 trong 2 chữ.</p>');
   }
   return '<section class="card hero"><div class="row" style="justify-content:space-between"><h2>Chào ' + esc(v.me.name) + '</h2><span class="pill">' + dayLabel + '</span></div>' +
     '<div class="dots">' + days.join('') + '</div>' + body + '</section>' +
     '<section class="card"><p class="eyebrow">Gần nhất</p><p>' + hint(v) + '</p></section>' + feedCard(v);
 }
 
-function viewBag(v) {
+// Túi chữ của người chơi: hiện ở đầu MỌI tab để vào là thấy ngay
+function bagStrip(v) {
   var bag = Object.keys(v.me.bag).sort();
-  var bagHtml = bag.length ? bag.map(function (c) { return tile(c, '', v.me.bag[c]); }).join('') : '<p class="muted">Túi đang trống — check-in để nhận chữ đầu tiên.</p>';
-  if (v.me.stars > 0) bagHtml += tile('★', 'star', v.me.stars);
+  var h = bag.length ? bag.map(function (c) { return tile(c, '', v.me.bag[c]); }).join('') : '<span class="muted small">Túi đang trống — check-in để nhận chữ đầu tiên</span>';
+  if (v.me.stars > 0) h += tile('★', 'star', v.me.stars);
+  return '<section class="card bagbar"><div class="row" style="justify-content:space-between"><h3>🎒 Túi chữ của tôi</h3><span class="small muted">🔑 hiếm · ★ vàng · quà ' + v.me.wins.length + '/' + v.cfg.maxPrize + '</span></div><div class="tiles">' + h + '</div></section>';
+}
+
+function viewBag(v) {
   var words = v.words.map(function (w, i) {
     var won = v.me.wins.indexOf(w.id) > -1, left = w.n - w.done;
     var status = won ? '<span class="pill done">Bạn đã ghép</span>' : left <= 0 ? '<span class="pill done">Hết suất</span>' : '<span class="pill' + (/100g/.test(w.prize) ? ' gold' : '') + '">còn ' + left + '/' + w.n + ' suất</span>';
     var full = v.me.wins.length >= v.cfg.maxPrize;
     var can = w.ok && !won && left > 0 && !full && w.isOpen && !S.busy;
     if (!won && left > 0 && !w.isOpen) status = '<span class="pill">Mở ghép từ ' + dmy(w.open) + '</span>';
-    if (w.ok && !won && left > 0 && full) status = '<span class="pill done">Bạn đã đủ ' + v.cfg.maxPrize + ' quà — tặng chữ cho bạn nhé 💚</span>';
+    if (w.ok && !won && left > 0 && full) status = '<span class="pill done">Bạn đã đủ ' + v.cfg.maxPrize + ' quà</span>';
     return '<div class="word"><div class="tiles">' + w.cells.map(function (c) { return tile(c.s === 'star' ? '★' : c.c, c.s === 'have' ? '' : c.s, 0); }).join('') + '</div>' +
       '<button class="ghep" data-w="' + w.id + '"' + (can ? '' : ' disabled') + '>Ghép</button>' +
       '<div class="meta"><span><span class="lv">' + (i + 1) + '. ' + esc(w.label) + '</span> · ' + esc(w.prize) + '</span>' + status + '</div>' + wordNote(w.id) + '</div>';
   }).join('');
-  var mates = v.mates.map(function (m) { return '<option value="' + esc(m.ma) + '">' + esc(m.name) + '</option>'; }).join('');
-  var letters = bag.filter(function (c) { return !isKey(c); }).map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
-  return '<section class="card"><div class="row" style="justify-content:space-between"><h3>Túi chữ của bạn</h3><span class="small muted">🔑 = chữ hiếm · ★ = chữ vàng</span></div><div class="tiles">' + bagHtml + '</div></section>' +
-    '<section class="card"><h3>12 từ · quà từ nhỏ đến lớn</h3><p class="small muted">Mỗi người nhận tối đa ' + v.cfg.maxPrize + ' phần quà (đã nhận ' + v.me.wins.length + '). ★ thay được mọi chữ trừ chữ hiếm 🔑.</p>' + words + '</section>' +
-    '<section class="card"><h3>Tặng chữ cho đồng đội 💚</h3><p class="small muted">Mỗi ngày tặng được 1 chữ. Chữ trùng hay chữ bạn không cần — tặng bạn đang thiếu. Chữ hiếm 🔑 giữ lại để tự ghép, không tặng được.</p>' +
-    (bag.length ? '<div class="row"><select id="giveTo" class="grow" aria-label="Tặng cho ai">' + mates + '</select><select id="giveL" aria-label="Chữ muốn tặng" style="width:90px">' + letters + '</select>' +
-      '<button id="give"' + (v.me.gaveToday || S.busy ? ' disabled' : '') + '>' + (v.me.gaveToday ? 'Mai tặng tiếp' : 'Tặng') + '</button></div>' : '<p class="muted">Chưa có chữ để tặng.</p>') + '</section>';
+  return '<section class="card"><h3>12 từ · quà từ nhỏ đến lớn</h3><p class="small muted">Mỗi người nhận tối đa ' + v.cfg.maxPrize + ' phần quà (đã nhận ' + v.me.wins.length + '). ★ thay được mọi chữ trừ chữ hiếm 🔑.</p>' + words + '</section>';
 }
 
 function viewTeam(v) {
-  var goal = v.team.milestones[v.team.milestones.length - 1], total = v.team.total;
+  var ms = v.team.milestones, goal = ms[ms.length - 1], total = v.team.total;
   var chars = v.cfg.slogan.replace(/ /g, '').length, lit = Math.min(chars, Math.floor(total / goal * chars)), k = 0;
   var board = v.cfg.slogan.split(' ').map(function (w) {
     return '<span class="w">' + w.split('').map(function (c) { return '<span class="tile' + (k++ < lit ? '' : ' miss') + '">' + esc(c) + '</span>'; }).join('') + '</span>';
   }).join('');
-  var ticks = v.team.milestones.map(function (m, i) { return '<span>' + (total >= m ? '✅ ' : '') + m + (i < v.team.milestones.length - 1 ? ' · ★' : ' · ★ + quà chung') + '</span>'; }).join('');
+  var ticks = ms.map(function (m, i) { return '<span>' + (total >= m ? '✅ ' : '') + m.toLocaleString('vi-VN') + (i < ms.length - 1 ? ' · ★' : ' · ★ + quà chung') + '</span>'; }).join('');
+  var next = ms.filter(function (m) { return m > total; })[0];
+  var nextLine = next ? 'Còn <b>' + (next - total).toLocaleString('vi-VN') + ' lượt</b> nữa tới mốc ' + next.toLocaleString('vi-VN') + (next === goal ? ' (mốc cuối)' : ' — mọi người được thêm 1 chữ vàng ★') + '.' : 'Cả nhóm đã chạm mốc cuối! 🎉';
   var given = v.words.reduce(function (s, w) { return s + w.done; }, 0), slots = v.words.reduce(function (s, w) { return s + w.n; }, 0);
   return '<section class="card hero"><p class="eyebrow">Cả nhóm cùng thắp sáng</p><h2>' + total.toLocaleString('vi-VN') + ' lượt check-in</h2>' +
-    '<p class="muted">Mỗi lượt check-in của bất kỳ ai cũng thắp thêm bảng chữ. Không ai hơn ai — ai đăng cũng là góp cho cả nhóm.</p></section>' +
+    '<p class="muted"><b>"Cả nhóm" là toàn bộ đội đại sứ Umikai.</b> Mỗi bài check-in của bất kỳ ai là +1 lượt vào bộ đếm chung. Không ai phải đua với ai — ai đăng cũng là góp cho cả đội.</p></section>' +
     '<section class="card"><div class="board">' + board + '</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + goal + '" aria-valuenow="' + total + '"><i style="width:' + Math.min(100, total / goal * 100) + '%"></i></div>' +
-    '<div class="ticks">' + ticks + '</div><p class="small">Mỗi mốc: mọi người đã chơi nhận <b>1 chữ vàng ★</b>. Thắp sáng cả câu: <b>' + esc(v.cfg.teamPrize) + '</b>.</p></section>' +
+    '<div class="ticks">' + ticks + '</div><p>' + nextLine + '</p></section>' +
+    '<section class="card"><h3>Cả nhóm giúp bạn được gì?</h3><ol class="rules">' +
+    '<li>Mỗi mốc <b>' + ms.slice(0, -1).map(function (m) { return m.toLocaleString('vi-VN'); }).join(' · ') + '</b> lượt: <b>tất cả người đã chơi</b> được tặng thêm <b>1 chữ vàng ★</b>. ★ thay được mọi chữ (trừ chữ hiếm 🔑) nên bạn ghép từ nhanh hơn, dù bạn mới check-in vài ngày.</li>' +
+    '<li>Mốc cuối <b>' + goal.toLocaleString('vi-VN') + '</b> trùng ngày sinh nhật Sống Có Hiếu 10/10 🎂: sáng cả câu → <b>' + esc(v.cfg.teamPrize) + '</b></li>' +
+    '<li>Bạn đăng bài thì đồng đội được lợi; đồng đội đăng bài thì bạn cũng được lợi. Càng nhiều người đăng đều, cả đội càng sớm có quà chung.</li></ol></section>' +
     '<section class="card"><h3>Quà đã về tay đại sứ</h3><p><b>' + given + '</b> / ' + slots + ' suất quà cá nhân đã được ghép.</p></section>' + feedCard(v);
 }
 
@@ -578,14 +590,14 @@ function viewRules() {
   var w = GC.WORDS.map(function (x, i) { return '<li><b>' + esc(x.label) + '</b> — ' + esc(x.prize) + ' · ' + x.n + ' suất' + (WORD_NOTES[x.id] ? '<br><span class="small muted">ℹ️ ' + esc(WORD_NOTES[x.id]) + '</span>' : '') + '</li>'; }).join('');
   return '<section class="card"><h2>Luật chơi</h2><ol class="rules">' +
     '<li><b>Mỗi ngày đăng bài/video</b> (01/10 – 30/10) → vào đây dán link bài → nhận <b>1 chữ ngẫu nhiên</b>.</li>' +
-    '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b> được <b>chọn 1 trong 2 chữ</b>. Quên check-in? Hôm sau bấm "check-in bù" cho hôm qua.</li>' +
+    '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b> được <b>chọn 1 trong 2 chữ</b>. <b>Quên check-in hôm qua?</b> Ở mục Hôm nay, chọn nút <b>"Bài hôm qua (mình quên)"</b>, dán link bài hôm qua → vẫn nhận 1 chữ.</li>' +
     '<li>Gom đủ chữ để <b>ghép 1 trong 12 từ</b>. Mỗi từ có ít nhất 1 <b>chữ hiếm 🔑</b> (G, W, 1, D, M, X, L, Q, E) — chữ hiếm chỉ phát đủ cho số suất quà, thả dần tới 25/10.</li>' +
     '<li><b>Kho quà mở theo tuần:</b> GIÒN, NGON mở ngay · từ 08/10 thêm STVW, pH 12, ĐẠI SỨ, RỬA RAU · từ 15/10 thêm UMIKAI, ION CANXI, BỌC CANXI · từ 22/10 thêm KO RỬA LẠI, BẢO QUẢN TP, SỐNG CÓ HIẾU. Quà lớn luôn còn tới tuần cuối!</li>' +
-    '<li>Mỗi người nhận tối đa <b>2 phần quà</b>, mỗi từ ghép 1 lần. Đủ quà rồi thì <b>tặng chữ thường</b> cho đồng đội (1 chữ/ngày; chữ hiếm 🔑 không tặng được).</li>' +
+    '<li>Mỗi người nhận tối đa <b>2 phần quà</b>, mỗi từ ghép 1 lần.</li>' +
     '<li>Cả nhóm đạt <b>300 · 700 · 1.010</b> lượt check-in → mỗi mốc ai đã chơi được <b>1 chữ vàng ★</b> (thay mọi chữ trừ chữ hiếm 🔑).</li>' +
     '<li>Thắp sáng cả câu <b>"Sạch từ hôm nay khỏe cho ngày mai"</b> → quay 2 hộp Umikai 100g cho mọi người đã chơi. Suất nào tới 01/11 chưa ai ghép cũng dồn vào lượt quay này.</li>' +
     '<li><b>Mỗi link bài chỉ đổi được 1 chữ</b> — dán đúng link bài hôm nay của chính bạn là chữ bay về túi liền 😄</li>' +
-    '</ol></section><section class="card"><h3>12 từ và quà</h3><ol class="rules">' + w + '</ol><p class="small muted">Hạn ghép và tặng chữ: 01/11. Quà do Umikai tài trợ, BTC Siêu Thị Vietwise gửi.</p></section>';
+    '</ol></section><section class="card"><h3>12 từ và quà</h3><ol class="rules">' + w + '</ol><p class="small muted">Hạn ghép: 01/11. Quà do Umikai tài trợ, BTC Siêu Thị Vietwise gửi.</p></section>';
 }
 
 function render() {
@@ -598,7 +610,7 @@ function render() {
     else if (S.lastMa) document.getElementById('ma').value = S.lastMa;
   } else {
     tabs.hidden = false; out.hidden = false;
-    app.innerHTML = S.tab === 'bag' ? viewBag(S.v) : S.tab === 'team' ? viewTeam(S.v) : S.tab === 'rules' ? viewRules() : viewToday(S.v);
+    app.innerHTML = bagStrip(S.v) + (S.tab === 'bag' ? viewBag(S.v) : S.tab === 'team' ? viewTeam(S.v) : S.tab === 'rules' ? viewRules() : viewToday(S.v));
     tabs.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-current', b.dataset.tab === S.tab ? 'page' : 'false'); });
   }
 }
@@ -610,13 +622,14 @@ document.addEventListener('click', function (ev) {
   if (t.id === 'dNext') { Demo.nextDay(); if (S.creds) send({ a: 'state' }); else render(); return; }
   if (t.id === 'dReset') { Demo.reset(); if (S.creds) send({ a: 'state' }); else render(); return; }
   if (t.id === 'checkin') {
-    var link = document.getElementById('link').value.trim(), bu = document.getElementById('bu');
+    var link = document.getElementById('link').value.trim();
+    S.link = link;
     if (!ENDPOINT && !link) link = 'https://www.facebook.com/share/v/ban-thu/';
-    send({ a: 'checkin', link: link, bu: bu && bu.checked ? 1 : 0 }); return;
+    send({ a: 'checkin', link: link, bu: S.bu ? 1 : 0 }); return;
   }
+  if (t.classList.contains('dayopt')) { var li = document.getElementById('link'); S.link = li ? li.value : ''; S.bu = +t.dataset.bu; render(); return; }
   if (t.classList.contains('pick')) { send({ a: 'pick', l: t.dataset.l }); return; }
   if (t.classList.contains('ghep')) { send({ a: 'ghep', w: t.dataset.w }); return; }
-  if (t.id === 'give') { send({ a: 'give', to: document.getElementById('giveTo').value, l: document.getElementById('giveL').value }); return; }
 });
 document.addEventListener('submit', function (ev) {
   if (ev.target.id !== 'login') return;
