@@ -370,6 +370,24 @@ var GC = (function () {
     return { res: { ok: true, view: view(st, who.ma, now), last: out[out.length - 1] || null }, events: out };
   }
 
+  // Tiến độ cả đội cho từng từ đang mở và còn suất: bao nhiêu người đã có từ 50% / từ 75% số chữ, bao nhiêu người đủ chữ chưa ghép.
+  // Chỉ đếm người đã chơi (có ≥1 lượt check-in) và chưa ghép từ đó. ★ tính như chữ có (đúng như lúc ghép). Không lộ tên ai.
+  function progress(st, today) {
+    var out = [];
+    WORDS.forEach(function (w) {
+      if (today < w.open || st.done[w.id] >= w.n) return;
+      var len = w.id.length, t50 = Math.ceil(len * 0.5), t75 = Math.ceil(len * 0.75), c50 = 0, c75 = 0, ready = 0;
+      Object.keys(st.p).forEach(function (ma) {
+        var p = st.p[ma];
+        if (!Object.keys(p.days).length || p.wins.indexOf(w.id) > -1 || p.wins.length >= CFG.maxPrize) return;
+        var have = plan(p, w).cells.filter(function (c) { return c.s !== 'miss'; }).length;
+        if (have >= len) ready++; else if (have >= t75) c75++; else if (have >= t50) c50++;
+      });
+      out.push({ id: w.id, label: w.label, len: len, t50: t50, t75: t75, c50: c50, c75: c75, ready: ready, left: w.n - st.done[w.id] });
+    });
+    return out;
+  }
+
   // Dữ liệu trang cần hiển thị cho 1 người (không lộ PIN, không lộ link của người khác)
   function view(st, ma, now) {
     var p = st.p[ma], today = vnDay(now);
@@ -378,6 +396,7 @@ var GC = (function () {
       words: WORDS.map(function (w) { var pl = plan(p, w); return { id: w.id, label: w.label, keys: w.keys, open: w.open, isOpen: today >= w.open, n: w.n, done: st.done[w.id], prize: w.prize, cells: pl.cells, ok: pl.ok }; }),
       team: { total: st.total, reached: st.reached, milestones: CFG.milestones, players: Object.keys(st.p).length },
       feed: st.feed.slice(-12).reverse(),
+      progress: progress(st, today),
       today: today, checkedToday: !!p.days[today], checkedYesterday: !!p.days[addDays(today, -1)],
       cfg: { start: CFG.start, end: CFG.end, strictFrom: CFG.strictFrom, slogan: CFG.slogan, teamPrize: CFG.teamPrize, maxPrize: CFG.maxPrize, totalDays: totalDays() }
     };
@@ -580,10 +599,25 @@ function viewTeam(v) {
     '<section class="card"><h3>Quà đã về tay đại sứ</h3><p><b>' + given + '</b> / ' + slots + ' suất quà cá nhân đã được ghép.</p></section>' + feedCard(v);
 }
 
+// Cụm "ai sắp ghép được": chỉ đếm số người (không lộ tên) để tạo cảm giác cùng chơi, mong đợi
+function progressLines(v) {
+  function rng(lo, hi, len) { return (lo === hi ? lo : lo + '–' + hi) + '/' + len; }
+  return (v.progress || []).map(function (w) {
+    var bits = [];
+    if (w.ready) bits.push('🎯 <b>' + w.ready + ' người đã đủ chữ</b>, sắp ghép');
+    if (w.c75) bits.push('🔥 <b>' + w.c75 + ' người</b> có ' + rng(w.t75, w.len - 1, w.len) + ' chữ (75%)');
+    if (w.c50) bits.push('🔸 <b>' + w.c50 + ' người</b> có ' + rng(w.t50, w.t75 - 1, w.len) + ' chữ (50%)');
+    return bits.length ? '<li><span><b>' + esc(w.label) + '</b> (còn ' + w.left + ' suất): ' + bits.join(' · ') + '</span></li>' : '';
+  }).join('');
+}
 function feedCard(v) {
-  if (!v.feed.length) return '';
-  return '<section class="card"><h3>Tin cả nhóm</h3><ul class="feed">' + v.feed.map(function (f) {
-    var d = new Date(f.at); return '<li><time>' + ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '</time><span>' + esc(f.text) + '</span></li>'; }).join('') + '</ul></section>';
+  var prog = progressLines(v);
+  if (!prog && !v.feed.length) return '';
+  return '<section class="card"><h3>Tin cả nhóm</h3>' +
+    (prog ? '<p class="small muted">Ai cũng đang gom chữ — đây là số người đã gần ghép được từng từ:</p><ul class="feed">' + prog + '</ul>' : '') +
+    (v.feed.length ? (prog ? '<p class="small muted">Mới nhất:</p>' : '') + '<ul class="feed">' + v.feed.map(function (f) {
+      var d = new Date(f.at); return '<li><time>' + ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '</time><span>' + esc(f.text) + '</span></li>'; }).join('') + '</ul>' : '') +
+    '</section>';
 }
 
 function viewRules() {
