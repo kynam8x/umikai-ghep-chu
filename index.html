@@ -548,7 +548,7 @@ function viewToday(v) {
       '<label for="link">Link bài Facebook ' + (bu ? 'hôm qua' : 'hôm nay') + '<input id="link" type="url" placeholder="https://www.facebook.com/…" autocomplete="off" value="' + esc(S.link) + '"></label>' +
       '<button id="checkin"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Đang gửi… đợi vài giây nha' : bu ? 'Check-in bù cho hôm qua' : 'Check-in bài hôm nay') + '</button>' +
       '<p class="small">' + LINK_HINT + '</p>' +
-      (bu ? '' : '<p class="small muted">Từ 01/10: check-in 12:12 – 13:12 được chọn 1 trong 2 chữ.</p>');
+      (bu ? '' : '<p class="small muted">Check-in 12:12 – 13:12: hệ thống cho 2 chữ, bạn giữ 1 chữ mình thích.</p>');
   }
   return '<section class="card hero"><div class="row" style="justify-content:space-between"><h2>Chào ' + esc(v.me.name) + '</h2><span class="pill">' + dayLabel + '</span></div>' +
     '<div class="dots">' + days.join('') + '</div>' + body + '</section>' +
@@ -624,7 +624,7 @@ function viewRules() {
   var w = GC.WORDS.map(function (x, i) { return '<li><b>' + esc(x.label) + '</b> — ' + esc(x.prize) + ' · ' + x.n + ' suất' + (WORD_NOTES[x.id] ? '<br><span class="small muted">ℹ️ ' + esc(WORD_NOTES[x.id]) + '</span>' : '') + '</li>'; }).join('');
   return '<section class="card"><h2>Luật chơi</h2><ol class="rules">' +
     '<li><b>Mỗi ngày đăng bài/video</b> (01/10 – 30/10) → vào đây dán link bài → nhận <b>1 chữ ngẫu nhiên</b>.</li>' +
-    '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b> được <b>chọn 1 trong 2 chữ</b>. <b>Quên check-in hôm qua?</b> Ở mục Hôm nay, chọn nút <b>"Bài hôm qua (mình quên)"</b>, dán link bài hôm qua → vẫn nhận 1 chữ.</li>' +
+    '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b>: hệ thống cho <b>2 chữ, bạn giữ 1 chữ mình thích</b>. Check-in giờ khác nhận 1 chữ ngẫu nhiên. <b>Quên check-in hôm qua?</b> Ở mục Hôm nay, chọn nút <b>"Bài hôm qua (mình quên)"</b>, dán link bài hôm qua → vẫn nhận 1 chữ.</li>' +
     '<li>Gom đủ chữ để <b>ghép 1 trong 12 từ</b>. Mỗi từ có ít nhất 1 <b>chữ hiếm 🔑</b> (G, W, 1, D, M, X, L, Q, E) — chữ hiếm chỉ phát đủ cho số suất quà, thả dần tới 25/10.</li>' +
     '<li><b>Kho quà mở theo tuần:</b> GIÒN, NGON mở ngay · từ 08/10 thêm STVW, pH 12, ĐẠI SỨ, RỬA RAU · từ 15/10 thêm UMIKAI, ION CANXI, BỌC CANXI · từ 22/10 thêm KO RỬA LẠI, BẢO QUẢN TP, SỐNG CÓ HIẾU. Quà lớn luôn còn tới tuần cuối!</li>' +
     '<li>Mỗi người nhận tối đa <b>2 phần quà</b>, mỗi từ ghép 1 lần.</li>' +
