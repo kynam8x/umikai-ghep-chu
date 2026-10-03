@@ -407,7 +407,7 @@ var GC = (function () {
 
 </script>
 <script>
-var ENDPOINT = "https://script.google.com/macros/s/AKfycbyrYS0NNsm3_fGEjcDbN-vWmHiW39VY_KEkGHXzNXVLEQz3u0AVvkXqF8sv_NOzD_w/exec";
+var ENDPOINT = "";
 var S = { creds: null, v: null, tab: 'today', busy: false, bu: 0, link: '' };
 // 3 lời nhắc cùng 1 ý (link bài hôm nay của chính mình · mỗi link 1 chữ), mỗi lần mở game chọn ngẫu nhiên 1 câu
 var LINK_HINTS = [
@@ -466,14 +466,28 @@ var Demo = (function () {
   };
 })();
 
-function call(req) {
-  req.ma = S.creds.ma; req.pin = S.creds.pin;
+function callOnce(req) {
   if (!ENDPOINT) return Promise.resolve(Demo.handle(req));
   if (ENDPOINT === 'GAS') return new Promise(function (ok) { // trang do chính Apps Script phục vụ (link /exec)
-    google.script.run.withSuccessHandler(ok).withFailureHandler(function () { ok({ ok: false, error: 'Chưa kết nối được máy chủ game. Thử lại sau ít phút.' }); }).api(req);
+    google.script.run.withSuccessHandler(ok).withFailureHandler(function () { ok({ ok: false, net: true, error: 'Chưa kết nối được máy chủ game. Thử lại sau ít phút.' }); }).api(req);
   });
   return fetch(ENDPOINT, { method: 'POST', body: JSON.stringify(req) }).then(function (r) { return r.json(); })
-    .catch(function () { return { ok: false, error: 'Chưa kết nối được máy chủ game. Kiểm tra mạng rồi thử lại.' }; });
+    .catch(function () { return { ok: false, net: true, error: 'Chưa kết nối được máy chủ game. Kiểm tra mạng rồi thử lại.' }; });
+}
+// Giờ cao điểm (12:12) máy chủ có thể báo "đông người" hoặc mạng chập chờn → tự thử lại tối đa 3 lần rồi mới báo lỗi
+function call(req) {
+  req.ma = S.creds.ma; req.pin = S.creds.pin;
+  var tries = 0;
+  function go() {
+    return callOnce(req).then(function (res) {
+      if (res && (res.busy || res.net) && ENDPOINT && tries < 3) {
+        tries++; toast('Đang đông người, đang thử lại… (' + tries + '/3)');
+        return new Promise(function (ok) { setTimeout(ok, 2500 * tries); }).then(go);
+      }
+      return res;
+    });
+  }
+  return go();
 }
 
 function toast(msg) {
