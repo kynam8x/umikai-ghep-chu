@@ -124,6 +124,22 @@
   .flip { animation: flip .7s cubic-bezier(.2,.8,.3,1.2); }
   @keyframes flip { from { transform: rotateY(90deg) scale(.6); } to { transform: none; } }
   @media (prefers-reduced-motion: reduce) { .flip { animation: none; } }
+  /* Chọn 1 trong 2 chữ (check-in đúng giờ): làm thật nổi để không ai bỏ qua */
+  .hero.needpick { box-shadow: 0 0 0 4px var(--gold); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 8px rgba(244,182,58,.45); } }
+  .pickrow { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .pickopt { display: flex; flex-direction: column; align-items: center; gap: 10px; background: transparent; padding: 4px; }
+  .pickopt .go { background: var(--gold); color: var(--ink); border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700; box-shadow: 0 3px 0 var(--gold-deep); }
+  .pickhead { font-family: var(--display); font-size: 22px; line-height: 1.2; text-align: center; margin: 0; }
+  .pickfoot { font-size: 13px; text-align: center; color: #FFE2CF; }
+  .modal .pickhead { color: var(--ink); }
+  .modal .pickfoot { color: var(--grey); }
+  .modal .pickopt .go { box-shadow: 0 3px 0 var(--gold-deep); }
+  .pendbar { background: var(--gold); color: var(--ink); border-radius: 12px; padding: 12px 14px; font-weight: 700; display: flex; gap: 10px; align-items: center; justify-content: space-between; box-shadow: 0 3px 0 var(--gold-deep); }
+  .pendbar button { background: var(--ink); color: var(--white); padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+  nav.tabs button.alert { position: relative; }
+  nav.tabs button.alert::after { content: ""; position: absolute; top: 6px; right: calc(50% - 26px); width: 14px; height: 14px; border-radius: 50%; background: #E23B2E; border: 2px solid var(--white); }
+  @media (prefers-reduced-motion: reduce) { .hero.needpick { animation: none; } }
   .demo { background: var(--gold-soft); color: var(--gold-deep); border-radius: 12px; padding: 10px 12px; font-size: 13px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
 </style>
 </head>
@@ -494,9 +510,18 @@ function toast(msg) {
   var t = document.getElementById('toast'); t.textContent = msg; t.hidden = false;
   clearTimeout(toast.h); toast.h = setTimeout(function () { t.hidden = true; }, 6000);
 }
-function modal(html) {
-  var m = document.getElementById('modal'); m.innerHTML = '<div class="card">' + html + '<button id="mOk">Tuyệt vời</button></div>'; m.hidden = false;
+function modal(html, okLabel) {
+  var m = document.getElementById('modal'); m.innerHTML = '<div class="card">' + html + '<button id="mOk"' + (okLabel ? ' class="ghost"' : '') + '>' + (okLabel || 'Tuyệt vời') + '</button></div>'; m.hidden = false;
   document.getElementById('mOk').onclick = function () { m.hidden = true; };
+}
+// Hai chữ để chọn (check-in đúng giờ): hiện ngay sau check-in và 1 lần mỗi lần mở trang nếu còn chữ chưa chọn
+function pickOptions(o) {
+  return '<div class="pickrow">' + o.map(function (c) {
+    return '<button class="pick pickopt" data-l="' + esc(c) + '" aria-label="Giữ chữ ' + esc(c) + '">' + tile(c, 'big') + '<span class="go">Giữ chữ này</span></button>'; }).join('') + '</div>';
+}
+function modalPick(o) {
+  modal('<p class="pickhead">🎁 Bạn được 2 chữ — bấm chọn 1 chữ để giữ</p>' + pickOptions(o) +
+    '<p class="pickfoot">Không chọn thì ngày mai hệ thống tự giữ chữ bên trái (' + esc(o[0]) + ').</p>', 'Để sau');
 }
 
 function send(req) {
@@ -509,7 +534,8 @@ function send(req) {
     var e = res.last;
     if (e && e.t === 'in') { S.bu = 0; S.link = ''; }
     render();
-    if (!e) return;
+    if (!e) { if (res.view && res.view.me.pending && !S.pickShown) { S.pickShown = 1; modalPick(res.view.me.pending.o); } return; }
+    if (e.t === 'in' && e.o) { S.pickShown = 1; modalPick(e.o); return; }
     if (e.t === 'in' && e.l) modal('<p class="eyebrow">Chữ của ' + (e.bu ? 'hôm qua' : 'hôm nay') + '</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>' + (isKey(e.l) ? '<b>Chữ hiếm 🔑!</b> Cả game chỉ có vài chữ này.' : 'Đã bỏ vào túi chữ của bạn.') + '</p>');
     if (e.t === 'pick') modal('<p class="eyebrow">Bạn đã chọn</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>Cảm ơn bạn đăng đúng giờ 12:12!</p>');
     if (e.t === 'win') { var w = GC.WORDS.filter(function (x) { return x.id === e.w; })[0]; modal('<p class="eyebrow">Ghép thành công</p><h2>' + esc(w.label) + ' 🎉</h2><p>Quà: <b>' + esc(w.prize) + '</b>. BTC sẽ nhắn bạn để gửi quà.</p>' + (WORD_NOTES[w.id] ? '<p class="small muted">ℹ️ ' + esc(WORD_NOTES[w.id]) + '</p>' : '')); }
@@ -545,8 +571,8 @@ function viewToday(v) {
   var dayLabel = cur ? 'Ngày ' + cur + ' / ' + v.cfg.totalDays : (v.today < v.cfg.start ? 'Game chưa bắt đầu' : 'Đã hết ngày check-in');
   var body;
   if (v.me.pending) {
-    body = '<p class="eyebrow">Đăng đúng giờ · chọn 1 chữ</p><div class="row">' + v.me.pending.o.map(function (c) {
-      return '<button class="pick" data-l="' + esc(c) + '" aria-label="Chọn chữ ' + esc(c) + '" style="padding:0;background:transparent">' + tile(c, 'big') + '</button>'; }).join('') + '</div>';
+    body = '<p class="pickhead">🎁 Bạn còn 1 chữ chưa nhận ⏳</p><p style="text-align:center">Bạn đăng đúng giờ nên được <b>2 chữ</b> — bấm vào <b>1 chữ</b> để giữ.</p>' + pickOptions(v.me.pending.o) +
+      '<p class="pickfoot">Không chọn thì ngày mai hệ thống tự giữ chữ bên trái (' + esc(v.me.pending.o[0]) + ').</p>';
   } else if (v.checkedToday) {
     body = '<p class="eyebrow">Đã check-in hôm nay</p><p>Chữ hôm nay đã vào túi. Hẹn bạn <b>12:12</b> ngày mai!</p>';
   } else {
@@ -564,7 +590,7 @@ function viewToday(v) {
       '<p class="small">' + LINK_HINT + '</p>' +
       (bu ? '' : '<p class="small muted">Check-in 12:12 – 13:12: hệ thống cho 2 chữ, bạn giữ 1 chữ mình thích.</p>');
   }
-  return '<section class="card hero"><div class="row" style="justify-content:space-between"><h2>Chào ' + esc(v.me.name) + '</h2><span class="pill">' + dayLabel + '</span></div>' +
+  return '<section class="card hero' + (v.me.pending ? ' needpick' : '') + '"><div class="row" style="justify-content:space-between"><h2>Chào ' + esc(v.me.name) + '</h2><span class="pill">' + dayLabel + '</span></div>' +
     '<div class="dots">' + days.join('') + '</div>' + body + '</section>' +
     '<section class="card"><p class="eyebrow">Gần nhất</p><p>' + hint(v) + '</p></section>' + feedCard(v);
 }
@@ -638,7 +664,7 @@ function viewRules() {
   var w = GC.WORDS.map(function (x, i) { return '<li><b>' + esc(x.label) + '</b> — ' + esc(x.prize) + ' · ' + x.n + ' suất' + (WORD_NOTES[x.id] ? '<br><span class="small muted">ℹ️ ' + esc(WORD_NOTES[x.id]) + '</span>' : '') + '</li>'; }).join('');
   return '<section class="card"><h2>Luật chơi</h2><ol class="rules">' +
     '<li><b>Mỗi ngày đăng bài/video</b> (01/10 – 30/10) → vào đây dán link bài → nhận <b>1 chữ ngẫu nhiên</b>.</li>' +
-    '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b>: hệ thống cho <b>2 chữ, bạn giữ 1 chữ mình thích</b>. Check-in giờ khác nhận 1 chữ ngẫu nhiên. <b>Quên check-in hôm qua?</b> Ở mục Hôm nay, chọn nút <b>"Bài hôm qua (mình quên)"</b>, dán link bài hôm qua → vẫn nhận 1 chữ.</li>' +
+    '<li>Từ 01/10, check-in trong <b>12:12 – 13:12</b>: hệ thống cho <b>2 chữ, bạn bấm chọn 1 chữ mình thích để giữ</b> (không chọn thì hôm sau hệ thống tự giữ chữ bên trái). Check-in giờ khác nhận 1 chữ ngẫu nhiên. <b>Quên check-in hôm qua?</b> Ở mục Hôm nay, chọn nút <b>"Bài hôm qua (mình quên)"</b>, dán link bài hôm qua → vẫn nhận 1 chữ.</li>' +
     '<li>Gom đủ chữ để <b>ghép 1 trong 12 từ</b>. Mỗi từ có ít nhất 1 <b>chữ hiếm 🔑</b> (G, W, 1, D, M, X, L, Q, E) — chữ hiếm chỉ phát đủ cho số suất quà, thả dần tới 25/10.</li>' +
     '<li><b>Kho quà mở theo tuần:</b> GIÒN, NGON mở ngay · từ 08/10 thêm STVW, pH 12, ĐẠI SỨ, RỬA RAU · từ 15/10 thêm UMIKAI, ION CANXI, BỌC CANXI · từ 22/10 thêm KO RỬA LẠI, BẢO QUẢN TP, SỐNG CÓ HIẾU. Quà lớn luôn còn tới tuần cuối!</li>' +
     '<li>Mỗi người nhận tối đa <b>2 phần quà</b>, mỗi từ ghép 1 lần.</li>' +
@@ -658,8 +684,9 @@ function render() {
     else if (S.lastMa) document.getElementById('ma').value = S.lastMa;
   } else {
     tabs.hidden = false; out.hidden = false;
-    app.innerHTML = bagStrip(S.v) + (S.tab === 'bag' ? viewBag(S.v) : S.tab === 'team' ? viewTeam(S.v) : S.tab === 'rules' ? viewRules() : viewToday(S.v));
-    tabs.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-current', b.dataset.tab === S.tab ? 'page' : 'false'); });
+    var needPick = !!S.v.me.pending;
+    app.innerHTML = (needPick && S.tab !== 'today' ? '<div class="pendbar"><span>🎁 Bạn chưa chọn chữ hôm nay!</span><button data-tab="today">Chọn ngay</button></div>' : '') + bagStrip(S.v) + (S.tab === 'bag' ? viewBag(S.v) : S.tab === 'team' ? viewTeam(S.v) : S.tab === 'rules' ? viewRules() : viewToday(S.v));
+    tabs.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-current', b.dataset.tab === S.tab ? 'page' : 'false'); b.classList.toggle('alert', needPick && b.dataset.tab === 'today'); });
   }
 }
 
