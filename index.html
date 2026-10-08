@@ -112,9 +112,9 @@
   ol.rules b { color: var(--or-deep); }
 
   nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(43,36,32,.08);
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 5; }
-  nav.tabs button { background: transparent; color: var(--grey); border-radius: 14px; padding: 8px 2px 8px; min-height: 66px; font-size: 15px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-  nav.tabs button b { font-size: 28px; line-height: 1; }
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 5; }
+  nav.tabs button { background: transparent; color: var(--grey); border-radius: 14px; padding: 8px 1px 8px; min-height: 66px; font-size: 12px; line-height: 1.15; text-align: center; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  nav.tabs button b { font-size: 26px; line-height: 1; }
   nav.tabs button[aria-current="page"] { color: var(--or-deep); background: var(--or-soft); box-shadow: inset 0 -4px 0 var(--or); }
 
   .toast { position: fixed; left: 16px; right: 16px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); max-width: 528px; margin: 0 auto;
@@ -140,6 +140,39 @@
   nav.tabs button.alert { position: relative; }
   nav.tabs button.alert::after { content: ""; position: absolute; top: 6px; right: calc(50% - 26px); width: 14px; height: 14px; border-radius: 50%; background: #E23B2E; border: 2px solid var(--white); }
   @media (prefers-reduced-motion: reduce) { .hero.needpick { animation: none; } }
+  /* Tab Thành quả nhóm (lớp riêng, 08/10) */
+  .tqstats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .tqstat { background: var(--or-wash); border-radius: 12px; padding: 10px 12px; }
+  .hero .tqstat { background: rgba(255,255,255,.18); }
+  .tqstat b { display: block; font-family: var(--display); font-size: 24px; line-height: 1.1; }
+  .tqstat small { font-size: 12px; opacity: .85; }
+  .tqbig { font-family: var(--display); font-size: 44px; line-height: 1; font-weight: 800; }
+  .tqbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .tqb { border: 1.5px dashed var(--line); border-radius: 12px; padding: 8px 6px; text-align: center; color: #B8A99C; display: flex; flex-direction: column; gap: 2px; align-items: center; }
+  .tqb .e { font-size: 28px; filter: grayscale(1); opacity: .5; }
+  .tqb b { font-size: 12px; line-height: 1.2; }
+  .tqb small { font-size: 11px; }
+  .tqb.on { border: 1.5px solid var(--gold); background: var(--gold-soft); color: var(--ink); }
+  .tqb.on .e { filter: none; opacity: 1; }
+  .tqlock { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #EDE6FA; color: #5B3FA0; white-space: nowrap; }
+  .tqpub { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #E3F4E8; color: #1F7A3E; white-space: nowrap; }
+  .tqform label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; font-size: 14px; }
+  .tqform input { font: 500 16px var(--body); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; background: var(--white); color: var(--ink); }
+  .tqform small { font-weight: 500; color: var(--grey); font-size: 12px; }
+  .tq2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tqsum { background: var(--or-wash); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .tqlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .tqo { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .tqo .chip { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--or-soft); color: var(--or-deep); }
+  .tqo .chip.ok { background: #E3F4E8; color: #1F7A3E; }
+  .tqwall { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .tqwall li { display: flex; gap: 10px; }
+  .tqwall .heart { font-size: 20px; line-height: 1.2; }
+  .cf { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 11; }
+  .cf span { position: absolute; top: -30px; font-size: 26px; animation: cffall 2.6s ease-in forwards; }
+  @keyframes cffall { to { transform: translateY(110vh) rotate(360deg); opacity: .85; } }
+  @media (prefers-reduced-motion: reduce) { .cf { display: none; } }
+  .modal .bigemoji { font-size: 72px; line-height: 1; }
   .demo { background: var(--gold-soft); color: var(--gold-deep); border-radius: 12px; padding: 10px 12px; font-size: 13px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
 </style>
 </head>
@@ -158,6 +191,7 @@
   <button data-tab="today"><b>☀</b>Hôm nay</button>
   <button data-tab="bag"><b>🎁</b>Ghép quà</button>
   <button data-tab="team"><b>🤝</b>Cả nhóm</button>
+  <button data-tab="tq"><b>💚</b>Thành quả nhóm</button>
   <button data-tab="rules"><b>📜</b>Luật chơi</button>
 </nav>
 <div id="toast" class="toast" hidden></div>
@@ -421,6 +455,204 @@ var GC = (function () {
   return { CFG: CFG, WORDS: WORDS, SCARCE: SCARCE, isKey: isKey, plan: plan, normLink: normLink, act: act, build: build, draw: draw, vnDay: vnDay, addDays: addDays };
 })();
 
+/* Tab "Thành quả nhóm" — đại sứ tự ghi nhận đơn / số hộp / doanh số, huy hiệu, sổ đóng góp.
+ * LỚP RIÊNG, KHÔNG ĐI QUA core.js: không sinh chữ, quà, phiếu; không đụng luật, kho chữ, mốc game.
+ * Dữ liệu = nhật ký nối tiếp tab "BanHang" (ghi / sua / huy); sửa/huỷ không xoá dòng cũ, chỉ thêm dòng mới → có dấu vết.
+ * Dùng chung cho trang web (bản thử trong trình duyệt) và Apps Script (bản thật, thanhqua.gs = chép nguyên file này).
+ * Kế hoạch: plans/reports/ke-hoach-261008-1730-thanh-tich-so-hop-dong-gop.md (Nam duyệt 08/10).
+ */
+var TQ = (function () {
+  var CFG = {
+    start: '2026-10-01',          // tính từ 00:01 ngày 01/10/2026; cho ghi bù ngày đã qua (Nam 08/10)
+    price100: 219000,             // giá lẻ niêm yết hộp 100g — chỉ để GỢI Ý doanh số, đại sứ sửa được
+    price20: 65000,               // giá lẻ niêm yết hộp 20g
+    maxHop: 50,                   // tối đa mỗi loại hộp trên 1 đơn (chống gõ nhầm)
+    maxDs: 100000000,             // tối đa doanh số 1 đơn (chống gõ nhầm)
+    teamMilestones: [20, 50, 100, 200, 300],   // mốc cả nhóm theo tổng gia đình (= tổng đơn)
+    quietFrom: 12 * 60 + 12,      // khung giờ cao điểm: trang không tự làm mới
+    quietTo: 13 * 60 + 12
+  };
+
+  // Huy hiệu theo số đơn = số gia đình được hưởng lợi (tên: Nam chốt 1 và 50; 3·5·10·20·35 là đề xuất 08/10, đổi ở đây)
+  var BADGES_DON = [
+    { n: 1,  e: '🌱', name: 'Người biến 0 thành có' },
+    { n: 3,  e: '🌿', name: 'Người gieo mầm an tâm' },
+    { n: 5,  e: '🏮', name: 'Người thắp sáng căn bếp' },
+    { n: 10, e: '🍚', name: 'Người giữ bữa cơm bình yên' },
+    { n: 20, e: '💚', name: 'Người lan tỏa sạch khỏe' },
+    { n: 35, e: '🛡️', name: 'Người bảo vệ nhiều gia đình' },
+    { n: 50, e: '👑', name: 'Ngôi sao Umikai' }
+  ];
+  // Huy hiệu kiên trì làm video: theo TỔNG số ngày đã đăng (không phạt người bỏ ngày)
+  var BADGES_NGAY = [
+    { n: 3,  e: '🔥', name: 'Khởi đầu bền chí' },
+    { n: 7,  e: '📅', name: 'Một tuần kiên trì' },
+    { n: 14, e: '🎬', name: 'Hai tuần sáng tạo' },
+    { n: 21, e: '⭐', name: 'Ba tuần vững vàng' },
+    { n: 30, e: '🏆', name: 'Trọn 30 ngày' }
+  ];
+  var BADGE_CHUNGTAY = { e: '🤝', name: 'Chung tay' };
+
+  // Cột tab BanHang (BTC đọc/đối chiếu được ngay trên Google Sheet)
+  var HEAD = ['Mã dòng', 'Ghi lúc', 'Loại', 'Mã hồ sơ', 'Tên', 'Ngày bán (yyyy-mm-dd)', 'Hộp 100g', 'Hộp 20g', 'Tặng kèm 20g', 'Doanh số (đ)', 'Mã đơn siêu thị', 'Dòng gốc', 'Mã yêu cầu', 'Đối chiếu (BTC ghi ✓ dd/mm)'];
+
+  function vnDay(now) { return new Date(now.getTime() + 7 * 3600e3).toISOString().slice(0, 10); }
+  function vnMinutes(now) { var d = new Date(now.getTime() + 7 * 3600e3); return d.getUTCHours() * 60 + d.getUTCMinutes(); }
+  function dayIdx(s) { return Math.round(Date.parse(s + 'T00:00:00Z') / 864e5); }
+  function validDate(s) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s || ''))) return false;
+    return new Date(s + 'T00:00:00Z').toISOString().slice(0, 10) === s;
+  }
+  function intIn(v, lo, hi, money) {
+    if (v === '' || v === null || v === undefined) return null;
+    var n = Number(money ? String(v).replace(/[.,\s]/g, '') : String(v).trim()); // tiền: bỏ dấu chấm/phẩy ngăn cách (219.000); số hộp: nhập 1.5 là sai
+    if (!isFinite(n) || Math.floor(n) !== n || n < lo || n > hi) return null;
+    return n;
+  }
+
+  // ---------- Nhật ký → danh sách đơn hiện hành ----------
+  // evs: [{kind:'ghi'|'sua'|'huy', id, ref, ma, name, at, ngay, h100, h20, tang20, ds, mdon, rid, dc}] theo thứ tự thời gian
+  function reduce(evs) {
+    var by = {}, list = [];
+    (evs || []).forEach(function (e) {
+      if (e.kind === 'ghi') {
+        if (by[e.id]) return; // dòng ghi trùng mã → bỏ
+        var o = { id: e.id, ma: e.ma, name: e.name || '', ngay: e.ngay, h100: e.h100 | 0, h20: e.h20 | 0, tang20: e.tang20 | 0, ds: +e.ds || 0, mdon: e.mdon || '',
+          at: e.at, upd: e.at, edited: false, voided: false, locked: !!(e.dc && String(e.dc).trim()), dc: e.dc || '' };
+        by[e.id] = o; list.push(o);
+      } else if (e.kind === 'sua' && by[e.ref]) {
+        var t = by[e.ref];
+        if (t.voided) return;
+        t.ngay = e.ngay; t.h100 = e.h100 | 0; t.h20 = e.h20 | 0; t.tang20 = e.tang20 | 0; t.ds = +e.ds || 0; t.mdon = e.mdon || ''; t.upd = e.at; t.edited = true;
+      } else if (e.kind === 'huy' && by[e.ref]) {
+        by[e.ref].voided = true; by[e.ref].upd = e.at;
+      }
+    });
+    return { by: by, list: list };
+  }
+  function active(list) { return list.filter(function (o) { return !o.voided; }); }
+  function sum(arr, k) { return arr.reduce(function (s, o) { return s + (+o[k] || 0); }, 0); }
+
+  function longestStreak(days) {
+    var ds = (days || []).filter(validDate).map(dayIdx).sort(function (a, b) { return a - b; }), best = 0, cur = 0, prev = null;
+    ds.forEach(function (d) { cur = (prev !== null && d === prev + 1) ? cur + 1 : (prev !== null && d === prev ? cur : 1); if (cur > best) best = cur; prev = d; });
+    return best;
+  }
+  function badgeState(n, table) {
+    var earned = table.filter(function (b) { return n >= b.n; }), next = table.filter(function (b) { return n < b.n; })[0] || null;
+    return { earned: earned, next: next ? { n: next.n, e: next.e, name: next.name, left: next.n - n } : null };
+  }
+
+  // ---------- Dữ liệu hiển thị ----------
+  // ctx: { now, days: [yyyy-mm-dd đã check-in của người này], total: tổng lượt check-in cả nhóm (từ core), thanks: [{ngay, ma, ten, goc, loi, congkhai}], cfg: {khong_ctv: 'MA,MA', tuong_tac: số, tuong_tac_cap_nhat: text} }
+  function view(evs, ma, ctx) {
+    var now = ctx.now, today = vnDay(now), r = reduce(evs), act = active(r.list);
+    var mine = act.filter(function (o) { return o.ma === ma; });
+    var team = { don: act.length, h100: sum(act, 'h100'), h20: sum(act, 'h20'), ds: sum(act, 'ds') };
+    var ppl = {}; act.forEach(function (o) { ppl[o.ma] = 1; }); team.nguoi = Object.keys(ppl).length;
+    var ms = CFG.teamMilestones, reached = ms.filter(function (m) { return team.don >= m; }).length, nextM = ms.filter(function (m) { return team.don < m; })[0] || null;
+    var days = (ctx.days || []).filter(function (d) { return validDate(d); });
+    var sortedOrders = mine.slice().sort(function (a, b) { return a.ngay < b.ngay ? 1 : a.ngay > b.ngay ? -1 : (a.at < b.at ? 1 : -1); });
+    var khong = String((ctx.cfg && ctx.cfg.khong_ctv) || '').split(/[,\s;]+/).map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean);
+    var thanksAll = (ctx.thanks || []).filter(function (t) { return t && t.goc; });
+    var pub = thanksAll.filter(function (t) { return String(t.congkhai || 'có').toLowerCase() !== 'không'; });
+    var myThanks = thanksAll.filter(function (t) { return t.ma === ma; });
+    var dayNo = Math.min(30, Math.max(0, dayIdx(today) - dayIdx(CFG.start) + 1));
+    return {
+      cfg: { start: CFG.start, price100: CFG.price100, price20: CFG.price20, maxHop: CFG.maxHop, quietFrom: CFG.quietFrom, quietTo: CFG.quietTo,
+        badgesDon: BADGES_DON, badgesNgay: BADGES_NGAY, badgeChungTay: BADGE_CHUNGTAY, teamMilestones: ms },
+      updated: now.toISOString(),
+      me: {
+        isCtv: khong.indexOf(ma) < 0,
+        orders: sortedOrders,
+        don: mine.length, h100: sum(mine, 'h100'), h20: sum(mine, 'h20'), tang20: sum(mine, 'tang20'), ds: sum(mine, 'ds'),
+        share: team.don ? Math.round(mine.length / team.don * 1000) / 10 : 0,
+        badges: badgeState(mine.length, BADGES_DON),
+        ngay: { tong: days.length, streak: longestStreak(days), dayNo: dayNo, totalDays: 30, badges: badgeState(days.length, BADGES_NGAY) },
+        chungtay: myThanks.map(function (t) { return { ngay: t.ngay, goc: t.goc, loi: t.loi }; })
+      },
+      team: { don: team.don, h100: team.h100, h20: team.h20, ds: team.ds, nguoi: team.nguoi, milestones: ms, reached: reached, next: nextM, left: nextM ? nextM - team.don : 0,
+        videos: ctx.total || 0, tuongTac: ctx.cfg && +ctx.cfg.tuong_tac > 0 ? +ctx.cfg.tuong_tac : 0, tuongTacCapNhat: (ctx.cfg && ctx.cfg.tuong_tac_cap_nhat) || '' },
+      thanks: pub.map(function (t) { return { ngay: t.ngay, ten: t.ten, goc: t.goc, loi: t.loi }; }),
+      quiet: vnMinutes(now) >= CFG.quietFrom && vnMinutes(now) <= CFG.quietTo
+    };
+  }
+
+  // ---------- Hành động: ghi_don / sua_don / huy_don ----------
+  function parseFields(req, today) {
+    var h100 = intIn(req.h100 === '' ? 0 : req.h100, 0, CFG.maxHop), h20 = intIn(req.h20 === '' ? 0 : req.h20, 0, CFG.maxHop);
+    if (h100 === null) return { error: 'Số hộp 100g phải là số từ 0 đến ' + CFG.maxHop + '.' };
+    if (h20 === null) return { error: 'Số hộp 20g phải là số từ 0 đến ' + CFG.maxHop + '.' };
+    if (h100 + h20 < 1) return { error: 'Đơn cần ít nhất 1 hộp (100g hoặc 20g).' };
+    var tang = intIn(req.tang20 === '' || req.tang20 === undefined ? 0 : req.tang20, 0, CFG.maxHop);
+    if (tang === null || tang > h20) return { error: 'Số hộp 20g tặng kèm phải từ 0 và không quá số hộp 20g của đơn.' };
+    var ds = intIn(req.ds === '' || req.ds === undefined ? 0 : req.ds, 0, CFG.maxDs, true);
+    if (ds === null) return { error: 'Doanh số phải là số tiền (đồng), không quá ' + CFG.maxDs.toLocaleString('vi-VN') + '.' };
+    var ngay = String(req.ngay || '');
+    if (!validDate(ngay)) return { error: 'Chọn ngày bán hợp lệ.' };
+    if (ngay < CFG.start) return { error: 'Chỉ ghi đơn từ ngày ' + CFG.start.split('-').reverse().join('/') + ' trở đi.' };
+    if (ngay > today) return { error: 'Ngày bán không được ở tương lai.' };
+    var mdon = String(req.mdon || '').trim();
+    if (mdon.length > 40 || !/^[A-Za-z0-9#_\-\/. ]*$/.test(mdon)) return { error: 'Mã đơn siêu thị chỉ gồm chữ, số, dấu - _ # / . (tối đa 40 ký tự). Không có mã thì để trống.' };
+    return { ngay: ngay, h100: h100, h20: h20, tang20: tang, ds: ds, mdon: mdon };
+  }
+  function sameMdon(list, ma, mdon, exceptId) {
+    if (!mdon) return null;
+    return active(list).filter(function (o) { return o.ma === ma && o.id !== exceptId && o.mdon && o.mdon.toUpperCase() === mdon.toUpperCase(); })[0] || null;
+  }
+
+  // idGen: hàm tạo mã dòng mới (mặc định theo giờ + ngẫu nhiên)
+  function act(req, evs, players, now, idGen) {
+    var err = function (m) { return { res: { ok: false, error: m }, events: [] }; };
+    var ma = String(req.ma || '').trim().toUpperCase();
+    var who = (players || []).filter(function (x) { return x.ma === ma; })[0];
+    if (who && !String(who.pin || '').trim()) return err('Tài khoản của bạn chưa có PIN. Nhắn BTC (Kỳ Nam) để được cấp.');
+    if (!who || String(who.pin) !== String(req.pin || '').trim()) return err('Mã đại sứ hoặc mã PIN chưa đúng. PIN là 4 số cuối SĐT bạn đăng ký.');
+    var today = vnDay(now), at = now.toISOString(), r = reduce(evs), newId = (idGen || function () { return 'D' + now.getTime().toString(36) + Math.floor(Math.random() * 1679616).toString(36); });
+    var before = badgeState(active(r.list).filter(function (o) { return o.ma === ma; }).length, BADGES_DON).earned.length;
+
+    if (req.a === 'ghi_don') {
+      var f = parseFields(req, today); if (f.error) return err(f.error);
+      var rid = String(req.rid || '').slice(0, 40);
+      if (rid) { var dup = (evs || []).filter(function (e) { return e.kind === 'ghi' && e.rid === rid && e.ma === ma; })[0];
+        if (dup) return { res: { ok: true, last: { t: 'don', kind: 'ghi', id: dup.id, dup: 1, newBadges: [] } }, events: [] }; }
+      if (sameMdon(r.list, ma, f.mdon, null)) return err('Mã đơn này bạn đã ghi rồi (1 đơn = 1 gia đình). Muốn đổi thì bấm Sửa ở đơn đó nha.');
+      var e = { kind: 'ghi', id: newId(), ma: ma, name: who.name, at: at, ngay: f.ngay, h100: f.h100, h20: f.h20, tang20: f.tang20, ds: f.ds, mdon: f.mdon, rid: rid, dc: '' };
+      var after = badgeState(active(reduce((evs || []).concat([e])).list).filter(function (o) { return o.ma === ma; }).length, BADGES_DON).earned;
+      return { res: { ok: true, last: { t: 'don', kind: 'ghi', id: e.id, newBadges: after.slice(before) } }, events: [e] };
+    }
+    if (req.a === 'sua_don' || req.a === 'huy_don') {
+      var o = r.by[String(req.id || '')];
+      if (!o || o.ma !== ma) return err('Không tìm thấy đơn này.');
+      if (o.voided) return err('Đơn này đã huỷ rồi.');
+      if (o.locked) return err('Đơn này BTC đã đối chiếu với siêu thị nên khoá sửa/huỷ. Cần đổi thì nhắn BTC (Kỳ Nam) nha 💚');
+      if (req.a === 'huy_don') {
+        var h = { kind: 'huy', id: newId(), ref: o.id, ma: ma, name: who.name, at: at, ngay: o.ngay, h100: o.h100, h20: o.h20, tang20: o.tang20, ds: o.ds, mdon: o.mdon, rid: '', dc: '' };
+        return { res: { ok: true, last: { t: 'don', kind: 'huy', id: o.id, newBadges: [] } }, events: [h] };
+      }
+      var g = parseFields(req, today); if (g.error) return err(g.error);
+      if (sameMdon(r.list, ma, g.mdon, o.id)) return err('Mã đơn này bạn đã ghi ở đơn khác rồi (1 đơn = 1 gia đình).');
+      var s = { kind: 'sua', id: newId(), ref: o.id, ma: ma, name: who.name, at: at, ngay: g.ngay, h100: g.h100, h20: g.h20, tang20: g.tang20, ds: g.ds, mdon: g.mdon, rid: '', dc: '' };
+      return { res: { ok: true, last: { t: 'don', kind: 'sua', id: o.id, newBadges: [] } }, events: [s] };
+    }
+    return err('Yêu cầu không hợp lệ.');
+  }
+
+  function isAct(a) { return a === 'ghi_don' || a === 'sua_don' || a === 'huy_don'; }
+
+  // ---------- Chuyển qua lại dòng Google Sheet ↔ sự kiện ----------
+  function toRow(e) {
+    return [e.id, new Date(e.at), e.kind, e.ma, e.name || '', e.ngay, e.h100 | 0, e.h20 | 0, e.tang20 | 0, +e.ds || 0, e.mdon || '', e.ref || '', e.rid || '', e.dc || ''];
+  }
+  function fromRow(r) {
+    return { id: String(r[0]), at: r[1] instanceof Date ? r[1].toISOString() : String(r[1]), kind: String(r[2]), ma: String(r[3]).trim().toUpperCase(), name: String(r[4] || ''),
+      ngay: String(r[5] || ''), h100: Number(r[6]) || 0, h20: Number(r[7]) || 0, tang20: Number(r[8]) || 0, ds: Number(r[9]) || 0, mdon: String(r[10] || ''), ref: String(r[11] || ''), rid: String(r[12] || ''), dc: String(r[13] || '') };
+  }
+
+  return { CFG: CFG, HEAD: HEAD, BADGES_DON: BADGES_DON, BADGES_NGAY: BADGES_NGAY, BADGE_CHUNGTAY: BADGE_CHUNGTAY,
+    reduce: reduce, view: view, act: act, isAct: isAct, toRow: toRow, fromRow: fromRow, badgeState: badgeState, longestStreak: longestStreak, vnDay: vnDay, vnMinutes: vnMinutes, validDate: validDate };
+})();
+
 </script>
 <script>
 var ENDPOINT = "https://script.google.com/macros/s/AKfycbyrYS0NNsm3_fGEjcDbN-vWmHiW39VY_KEkGHXzNXVLEQz3u0AVvkXqF8sv_NOzD_w/exec";
@@ -466,15 +698,41 @@ var Demo = (function () {
       matesDay(ev, day, r);
       day = GC.addDays(day, 1);
     }
-    return { ev: ev, day: today };
+    return { ev: ev, day: today, sales: seedSales() };
+  }
+  var THANKS = [
+    { ngay: '08/10/2026', ma: 'UMK-FTSS', ten: 'Minh Hải', goc: 'Góp ý tưởng slogan chiến dịch marketing "Umikai - Sạch từ hôm nay – khỏe cho ngày mai."', loi: 'Ghi nhận', congkhai: 'có' },
+    { ngay: '08/10/2026', ma: 'UMK-Q4VB', ten: 'Kim Cúc', goc: 'Đóng góp ý tưởng ghi nhận thành quả nỗ lực chung của nhóm, cải tiến mini game ghép chữ', loi: 'Cảm ơn', congkhai: 'có' },
+    { ngay: '08/10/2026', ma: 'UMK-W9H0', ten: 'Ánh Nguyệt', goc: 'Đóng góp ý tưởng thay đổi tiêu đề thu hút, hiệu quả hơn', loi: 'Biết ơn', congkhai: 'có' },
+    { ngay: '08/10/2026', ma: 'UMK-HA2H', ten: 'Thúy Chinh', goc: 'Nhiệt tình gửi tư liệu vào nhóm kịp thời cho các đại sứ khác', loi: 'Biết ơn', congkhai: 'có' },
+    { ngay: '08/10/2026', ma: 'UMK-IPGH', ten: 'Hany', goc: 'Đóng góp poster Umikai vào nhóm', loi: 'Cảm ơn', congkhai: 'có' },
+    { ngay: '06/10/2026', ma: 'UMK-CXQA', ten: 'chị Kiều Minh', goc: 'Góp ý hướng dẫn quay nhanh', loi: 'Cảm ơn', congkhai: 'có' },
+    { ngay: '06/10/2026', ma: 'UMK-MFTS', ten: 'Tracy', goc: 'Góp ý hướng dẫn quay nhanh', loi: 'Cảm ơn', congkhai: 'có' }
+  ];
+  function seedSales() {
+    return [['UMK-A01', '2026-10-02', 2, 0, 438000], ['UMK-A02', '2026-10-03', 1, 1, 284000], ['UMK-A03', '2026-10-04', 1, 0, 219000], ['UMK-A04', '2026-10-05', 3, 1, 657000], ['UMK-A01', '2026-10-06', 1, 0, 219000], ['UMK-A05', '2026-10-07', 2, 1, 438000]].map(function (x, i) {
+      return { kind: 'ghi', id: 'S' + i, ma: x[0], name: '', at: at(x[1], 800).toISOString(), ngay: x[1], h100: x[2], h20: x[3], tang20: 0, ds: x[4], mdon: '', rid: '', dc: '' };
+    });
+  }
+  function decorate(res, d, now) {
+    if (res.ok && res.view) res.view.tq = TQ.view(d.sales || [], res.view.me.ma, { now: now, days: res.view.me.days, total: res.view.team.total, thanks: THANKS, cfg: { khong_ctv: '', tuong_tac: '', tuong_tac_cap_nhat: '' } });
+    return res;
   }
   var mem = null; // giữ tiến trình khi trình duyệt chặn localStorage
   function data() { if (mem) return mem; var d = store(K); if (!d || !d.ev) { d = seed(); store(K, d); } mem = d; return d; }
   return {
     players: players,
     handle: function (req) {
-      var d = data(), r = GC.act(req, d.ev, players, at(d.day, 12 * 60 + 30), Math.random);
-      d.ev = d.ev.concat(r.events); store(K, d); return r.res;
+      var d = data(), now = at(d.day, 12 * 60 + 30); d.sales = d.sales || [];
+      if (TQ.isAct(req.a)) {
+        var t = TQ.act(req, d.sales, players, now, function () { return 'D' + Math.random().toString(36).slice(2, 9); });
+        if (!t.res.ok) return t.res;
+        d.sales = d.sales.concat(t.events);
+        var s2 = GC.act({ a: 'state', ma: req.ma, pin: req.pin }, d.ev, players, now, Math.random);
+        d.ev = d.ev.concat(s2.events); store(K, d); s2.res.last = t.res.last; return decorate(s2.res, d, now);
+      }
+      var r = GC.act(req, d.ev, players, now, Math.random);
+      d.ev = d.ev.concat(r.events); store(K, d); return decorate(r.res, d, now);
     },
     nextDay: function () { var d = data(); matesDay(d.ev, d.day, Math.random); d.day = GC.addDays(d.day, 1); store(K, d); },
     reset: function () { mem = null; store(K, null); },
@@ -524,17 +782,24 @@ function modalPick(o) {
     '<p class="pickfoot">Không chọn thì ngày mai hệ thống tự giữ chữ bên trái (' + esc(o[0]) + ').</p>', 'Để sau');
 }
 
-function send(req) {
-  if (S.busy) return; S.busy = true; render();
+function send(req, silent) {
+  if (S.busy) return; S.busy = true; if (!silent) render();
   if (req.a !== 'state') toast('Đang gửi lên máy chủ… đợi vài giây nha');
   call(req).then(function (res) {
     S.busy = false;
-    if (!res.ok) { toast(res.error); if (!S.v) { S.creds = null; store('gc-creds', null); } render(); return; }
+    if (!res.ok) { if (silent) return; toast(res.error); if (S.tq.form && S.tq.form.step === 'review') S.tq.form.step = 'edit'; if (!S.v) { S.creds = null; store('gc-creds', null); } render(); return; }
+    var prevReached = S.v && S.v.tq ? S.v.tq.team.reached : null;
+    if (res.view && !res.view.tq && S.v && S.v.tq) res.view.tq = S.v.tq; // lớp Thành quả nhóm lỗi tạm thời → giữ số liệu cũ, không mất trang
     S.v = res.view;
     var e = res.last;
     if (e && e.t === 'in') { S.bu = 0; S.link = ''; }
     render();
+    if (prevReached !== null && res.view.tq && res.view.tq.team.reached > prevReached && !(e && e.t === 'don' && e.newBadges && e.newBadges.length)) {
+      var mm = res.view.tq.team.milestones[res.view.tq.team.reached - 1]; tqConfetti();
+      modal('<p class="eyebrow">Cả nhóm cùng ăn mừng 🎉</p><span class="bigemoji flip">🏡</span><h2>' + mm + ' gia đình</h2><p>Anh chị em đã cùng nhau giúp <b>' + mm + ' gia đình</b> an tâm khi làm sạch và bảo quản thực phẩm. Cảm ơn tất cả! 💚</p>');
+    }
     if (!e) { if (res.view && res.view.me.pending && !S.pickShown) { S.pickShown = 1; modalPick(res.view.me.pending.o); } return; }
+    if (e.t === 'don') { S.tq.form = null; S.tq.delId = null; render(); tqCelebrate(e); return; }
     if (e.t === 'in' && e.o) { S.pickShown = 1; modalPick(e.o); return; }
     if (e.t === 'in' && e.l) modal('<p class="eyebrow">Chữ của ' + (e.bu ? 'hôm qua' : 'hôm nay') + '</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>' + (isKey(e.l) ? '<b>Chữ hiếm 🔑!</b> Cả game chỉ có vài chữ này.' : 'Đã bỏ vào túi chữ của bạn.') + '</p>');
     if (e.t === 'pick') modal('<p class="eyebrow">Bạn đã chọn</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>Cảm ơn bạn đăng đúng giờ 12:12!</p>');
@@ -674,6 +939,163 @@ function viewRules() {
     '</ol></section><section class="card"><h3>12 từ và quà</h3><ol class="rules">' + w + '</ol><p class="small muted">Hạn ghép: 01/11. Quà do Umikai tài trợ, BTC Siêu Thị Vietwise gửi.</p></section>';
 }
 
+/* ---------- Tab "Thành quả nhóm" (lớp riêng, không đụng luật game) ---------- */
+S.tq = { form: null, delId: null };
+function vnd(n) { return (+n || 0).toLocaleString('vi-VN') + 'đ'; }
+function dmyFull(s) { var p = String(s).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
+function hhmm(iso) { var d = new Date(new Date(iso).getTime() + 7 * 3600e3); return ('0' + d.getUTCHours()).slice(-2) + ':' + ('0' + d.getUTCMinutes()).slice(-2); }
+function tqSuggest(f) { var c = TQ.CFG; return (+f.h100 || 0) * c.price100 + Math.max(0, (+f.h20 || 0) - (+f.tang20 || 0)) * c.price20; }
+function tqParts(o) {
+  var bits = [];
+  if (o.h100) bits.push('<b>' + o.h100 + '</b> hộp 100g');
+  if (o.h20) bits.push('<b>' + o.h20 + '</b> hộp 20g' + (o.tang20 ? ' (tặng kèm ' + o.tang20 + ')' : ''));
+  return bits.join(' · ');
+}
+function tqBadgeRow(table, n, unit) {
+  return '<div class="tqbs">' + table.map(function (b) {
+    return '<div class="tqb' + (n >= b.n ? ' on' : '') + '"><span class="e">' + b.e + '</span><b>' + esc(b.name) + '</b><small>' + b.n + ' ' + unit + '</small></div>';
+  }).join('') + '</div>';
+}
+
+function tqTeam(v) {
+  var t = v.tq, tm = t.team, pct = tm.next ? Math.min(100, Math.round(tm.don / tm.next * 100)) : 100;
+  var ticks = tm.milestones.map(function (m) { return '<span>' + (tm.don >= m ? '✅ ' : '') + m + '</span>'; }).join('');
+  return '<section class="card hero"><div class="row" style="justify-content:space-between"><p class="eyebrow">Thành quả nhóm</p><span class="tqpub">Ai cũng thấy</span></div>' +
+    '<p class="tqbig">' + tm.don.toLocaleString('vi-VN') + ' gia đình</p>' +
+    '<p>được hưởng lợi, <b>an tâm khi làm sạch và bảo quản thực phẩm cho cả gia đình</b>. <b>Mỗi đơn hàng là 1 gia đình.</b></p>' +
+    '<div class="tqstats"><div class="tqstat"><b>' + tm.h100.toLocaleString('vi-VN') + '</b><small>hộp Umikai 100g</small></div>' +
+    '<div class="tqstat"><b>' + tm.h20.toLocaleString('vi-VN') + '</b><small>hộp Umikai 20g</small></div>' +
+    '<div class="tqstat"><b>' + vnd(tm.ds) + '</b><small>doanh số cả nhóm</small></div>' +
+    '<div class="tqstat"><b>' + tm.nguoi + '</b><small>đại sứ đã ghi đơn</small></div></div>' +
+    '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + (tm.next || tm.don) + '" aria-valuenow="' + tm.don + '"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="ticks">' + ticks + '</div>' +
+    '<p>' + (tm.next ? 'Còn <b>' + tm.left + ' gia đình</b> nữa tới mốc <b>' + tm.next + '</b> — cả nhóm cùng cố lên! 💚' : '🎉 Cả nhóm đã vượt mọi mốc. Cảm ơn anh chị em!') + '</p>' +
+    '<p class="small muted">Số liệu do các đại sứ tự ghi nhận.</p></section>' +
+    '<section class="card"><h3>🤝 Anh chị em cùng chung tay</h3><p>Anh chị em đã <b>chung tay làm video mỗi ngày, tương tác cho nhau</b>: <b>' + tm.videos.toLocaleString('vi-VN') + '</b> video đã đăng' +
+    (tm.tuongTac ? ' · <b>' + tm.tuongTac.toLocaleString('vi-VN') + '</b> lượt tương tác' + (tm.tuongTacCapNhat ? ' (cập nhật ' + esc(tm.tuongTacCapNhat) + ')' : '') : '') + '.</p></section>';
+}
+
+function tqMine(v) {
+  var t = v.tq, me = t.me, b = me.badges, nx = b.next;
+  var msg = me.don > 0
+    ? 'Bạn đã giúp <b>' + me.don + ' gia đình</b> an tâm hơn khi làm sạch và bảo quản thực phẩm. Cảm ơn bạn! 💚'
+    : 'Đơn đầu tiên của bạn là <b>1 gia đình</b> được an tâm hơn. Ghi đơn để nhận huy hiệu <b>🌱 Người biến 0 thành có</b>.';
+  return '<section class="card"><div class="row" style="justify-content:space-between"><h3>💚 Thành quả của bạn</h3><span class="tqlock">🔒 Chỉ bạn thấy</span></div>' +
+    '<p class="tqbig">' + me.don + ' <span style="font-size:20px">gia đình</span></p><p>' + msg + '</p>' +
+    '<div class="tqstats"><div class="tqstat"><b>' + me.h100 + '</b><small>hộp 100g</small></div>' +
+    '<div class="tqstat"><b>' + me.h20 + '</b><small>hộp 20g' + (me.tang20 ? ' (tặng kèm ' + me.tang20 + ')' : '') + '</small></div>' +
+    '<div class="tqstat" style="grid-column:1/-1"><b>' + vnd(me.ds) + '</b><small>tổng doanh số bạn đã bán' + (me.share ? ' · góp ' + String(me.share).replace('.', ',') + '% vào tổng nhóm' : '') + '</small></div></div>' +
+    '<button id="tqOpen"' + (S.tq.form ? ' disabled' : '') + '>➕ Ghi đơn của tôi</button>' +
+    '<h3 style="margin-top:6px">Huy hiệu của bạn</h3>' + tqBadgeRow(t.cfg.badgesDon, me.don, 'đơn') +
+    (nx ? '<p class="bu-note">Còn <b>' + nx.left + ' đơn</b> nữa là bạn đạt <b>' + nx.e + ' ' + esc(nx.name) + '</b>.</p>' : '<p class="bu-note">👑 Bạn đã đạt mọi huy hiệu. Tuyệt vời!</p>') +
+    '</section>';
+}
+
+function tqForm(v) {
+  var f = S.tq.form; if (!f) return '';
+  var t = v.tq, me = t.me;
+  if (f.step === 'review') {
+    var dupOrder = me.orders.filter(function (o) { return o.id !== f.id && o.ngay === f.ngay && o.h100 === (+f.h100 || 0) && o.h20 === (+f.h20 || 0) && (o.mdon || '') === (f.mdon || '').trim(); })[0];
+    return '<section class="card tqform"><h3>' + (f.mode === 'edit' ? 'Xác nhận sửa đơn' : 'Xác nhận ghi đơn') + '</h3>' +
+      '<div class="tqsum"><span>📅 Ngày bán: <b>' + dmyFull(f.ngay) + '</b></span><span>' + (tqParts({ h100: +f.h100 || 0, h20: +f.h20 || 0, tang20: +f.tang20 || 0 }) || 'Chưa có hộp nào') + '</span>' +
+      '<span>💰 Doanh số: <b>' + vnd(String(f.ds).replace(/[.,\s]/g, '')) + '</b></span><span>🧾 Mã đơn siêu thị: <b>' + (f.mdon ? esc(f.mdon) : '—') + '</b></span><span><b>= 1 đơn = 1 gia đình</b></span></div>' +
+      (dupOrder ? '<p class="bu-note">⚠️ Bạn đã có 1 đơn y hệt ngày này. Nếu là đơn khác thì cứ ghi tiếp nha.</p>' : '') +
+      ((+String(f.ds).replace(/[.,\s]/g, '')) === 0 ? '<p class="bu-note">⚠️ Doanh số đang là 0đ. Nếu có thu tiền, bấm Quay lại sửa để nhập.</p>' : '') +
+      '<div class="row"><button id="tqSubmit"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Đang gửi…' : (f.mode === 'edit' ? 'Lưu thay đổi' : 'Xác nhận ghi')) + '</button><button class="ghost" id="tqBack">Quay lại sửa</button></div></section>';
+  }
+  var hint = me.isCtv ? 'Bạn là CTV siêu thị: nên điền mã đơn trên siêu thị để BTC đối chiếu (không bắt buộc).' : 'Bạn không cần điền mã đơn (không bắt buộc).';
+  return '<section class="card tqform"><h3>' + (f.mode === 'edit' ? 'Sửa đơn' : 'Ghi đơn của tôi') + '</h3>' +
+    '<label>Ngày bán<input type="date" data-tq="ngay" min="' + t.cfg.start + '" max="' + v.today + '" value="' + esc(f.ngay) + '"><small>Từ ' + dmyFull(t.cfg.start) + ', ghi bù ngày đã qua được.</small></label>' +
+    '<div class="tq2"><label>Hộp 100g<input type="number" inputmode="numeric" min="0" max="' + t.cfg.maxHop + '" data-tq="h100" placeholder="0" value="' + esc(f.h100) + '"></label>' +
+    '<label>Hộp 20g<input type="number" inputmode="numeric" min="0" max="' + t.cfg.maxHop + '" data-tq="h20" placeholder="0" value="' + esc(f.h20) + '"></label></div>' +
+    '<label>Trong đó hộp 20g tặng kèm<input type="number" inputmode="numeric" min="0" max="' + t.cfg.maxHop + '" data-tq="tang20" placeholder="0" value="' + esc(f.tang20) + '"><small>Ưu đãi mua 2 hộp 100g tặng 1 hộp 20g (hộp tặng không tính tiền).</small></label>' +
+    '<label>Doanh số của đơn (đồng)<input id="tqDs" type="text" inputmode="numeric" data-tq="ds" placeholder="0" value="' + esc(f.ds) + '"><small>Gợi ý tự tính theo giá lẻ ' + t.cfg.price100.toLocaleString('vi-VN') + 'đ / ' + t.cfg.price20.toLocaleString('vi-VN') + 'đ. Bạn sửa lại nếu thực thu khác.</small></label>' +
+    '<label>Mã đơn siêu thị (không bắt buộc)<input type="text" data-tq="mdon" autocomplete="off" placeholder="vd STVW-12345" value="' + esc(f.mdon) + '"><small>' + hint + '</small></label>' +
+    '<div class="row"><button id="tqReview">Xem lại</button><button class="ghost" id="tqCancel">Đóng</button></div></section>';
+}
+
+function tqOrders(v) {
+  var me = v.tq.me, ord = me.orders;
+  var items = ord.map(function (o) {
+    var chip = o.locked ? '<span class="chip ok">✓ Đã đối chiếu siêu thị</span>' : (o.mdon ? '<span class="chip">Chờ đối chiếu</span>' : (me.isCtv ? '<span class="chip">Chưa có mã đơn</span>' : '<span class="chip">Ghi nhận</span>'));
+    var acts = '';
+    if (!o.locked) {
+      acts = S.tq.delId === o.id
+        ? '<span class="small">Chắc chắn huỷ đơn này?</span> <button class="tqdelok" data-id="' + esc(o.id) + '">Huỷ đơn</button> <button class="ghost tqdelno">Giữ lại</button>'
+        : '<button class="ghost tqedit" data-id="' + esc(o.id) + '">Sửa</button> <button class="ghost tqdel" data-id="' + esc(o.id) + '">Huỷ</button>';
+    }
+    return '<li class="tqo"><div><b>' + dmyFull(o.ngay) + '</b> · ' + tqParts(o) + '<br><span class="small muted">Doanh số <b>' + vnd(o.ds) + '</b>' + (o.mdon ? ' · mã đơn ' + esc(o.mdon) : '') + (o.edited ? ' · đã sửa' : '') + '</span></div>' +
+      '<div class="row">' + chip + acts + '</div></li>';
+  }).join('');
+  return '<section class="card"><div class="row" style="justify-content:space-between"><h3>🧾 Đơn của bạn</h3><span class="tqlock">🔒 Chỉ bạn thấy</span></div>' +
+    (ord.length ? '<ul class="tqlist">' + items + '</ul><p class="small muted">Đơn đã được BTC đối chiếu với siêu thị thì khoá, không sửa được nữa. Cần đổi thì nhắn BTC.</p>'
+      : '<p class="muted">Chưa có đơn nào. Bấm "Ghi đơn của tôi" khi bạn bán được đơn đầu tiên nhé 🌱</p>') + '</section>';
+}
+
+function tqPersist(v) {
+  var n = v.tq.me.ngay, bd = n.badges, nx = bd.next;
+  var any = v.tq.me.chungtay.length ? '<p>🤝 <b>Chung tay:</b> ' + v.tq.me.chungtay.map(function (c) { return esc(c.goc) + ' (' + esc(c.ngay) + ')'; }).join('; ') + '. Cảm ơn bạn!</p>' : '';
+  return '<section class="card"><div class="row" style="justify-content:space-between"><h3>🎬 Kiên trì làm video</h3><span class="tqlock">🔒 Chỉ bạn thấy</span></div>' +
+    (n.tong > 0
+      ? '<p><b>Đây là kết quả bạn xứng đáng nhận được khi kiên trì làm video.</b></p><p class="small muted">Mỗi video là một lần bạn sáng tạo hơn, bền chí hơn.</p>'
+      : '<p><b>Mỗi video là một bước.</b> Hôm nay mình đăng video đầu tiên nhé 💚</p>') +
+    '<div class="tqstats"><div class="tqstat"><b>' + n.tong + '</b><small>ngày đã đăng</small></div><div class="tqstat"><b>' + n.streak + '</b><small>ngày liên tiếp dài nhất</small></div></div>' +
+    tqBadgeRow(v.tq.cfg.badgesNgay, n.tong, 'ngày') +
+    (nx ? '<p class="bu-note">Còn <b>' + nx.left + ' ngày</b> nữa là bạn đạt <b>' + nx.e + ' ' + esc(nx.name) + '</b>.</p>' : '<p class="bu-note">🏆 Trọn 30 ngày — bạn thật bền chí!</p>') + any + '</section>';
+}
+
+function tqThanks(v) {
+  var th = v.tq.thanks;
+  return '<section class="card"><div class="row" style="justify-content:space-between"><h3>💌 Bức tường cảm ơn</h3><span class="tqpub">Ai cũng thấy</span></div>' +
+    '<p class="small muted">Cảm ơn những người đã chung tay tạo nội dung hữu ích cho cả nhóm.</p>' +
+    (th.length ? '<ul class="tqwall">' + th.map(function (x) { return '<li><span class="heart">💚</span><div><b>' + esc(x.ten) + '</b> — ' + esc(x.goc) + '<br><span class="small muted">' + esc(x.loi || 'Cảm ơn') + ' · ' + esc(x.ngay) + '</span></div></li>'; }).join('') + '</ul>'
+      : '<p class="muted">Chưa có ghi nhận nào.</p>') + '</section>';
+}
+
+function viewTQ(v) {
+  if (!v.tq) return '<section class="card"><h2>Thành quả nhóm</h2><p class="muted">Tính năng đang được chuẩn bị. Bạn quay lại sau ít phút nhé 💚</p></section>';
+  return tqTeam(v) + tqMine(v) + tqForm(v) + tqOrders(v) + tqPersist(v) + tqThanks(v) +
+    '<p class="small muted" style="text-align:center">Cập nhật lúc ' + hhmm(v.tq.updated) + ' · <button class="ghost" id="tqRefresh">Làm mới</button></p>';
+}
+
+function tqConfetti() {
+  var c = document.createElement('div'); c.className = 'cf'; var em = ['🎉', '✨', '🌱', '💚', '🎊', '⭐'], h = '';
+  for (var i = 0; i < 28; i++) h += '<span style="left:' + Math.floor(Math.random() * 96) + '%;animation-delay:' + (Math.random() * 1.2).toFixed(2) + 's">' + em[i % em.length] + '</span>';
+  c.innerHTML = h; document.body.appendChild(c); setTimeout(function () { c.remove(); }, 4500);
+}
+function tqCelebrate(e) {
+  var nb = e.newBadges || [], first = nb.filter(function (b) { return b.n === 1; })[0];
+  if (e.dup) { toast('Đơn này đã được ghi rồi, mình không ghi trùng nhé 💚'); return; }
+  if (e.kind === 'ghi' && first) {
+    tqConfetti();
+    modal('<p class="eyebrow">Chúc mừng bạn! 🎉</p><span class="bigemoji flip">' + first.e + '</span><h2>' + esc(first.name) + '</h2>' +
+      '<p>Đơn hàng đầu tiên của bạn là <b>1 gia đình đã được hưởng lợi</b>, an tâm hơn khi làm sạch và bảo quản thực phẩm cho cả gia đình.</p>' +
+      '<p>Từ số 0 đến có — bạn đã làm được rồi. Cảm ơn bạn rất nhiều! 💚</p>');
+  } else if (e.kind === 'ghi' && nb.length) {
+    var b = nb[nb.length - 1]; tqConfetti();
+    modal('<p class="eyebrow">Huy hiệu mới!</p><span class="bigemoji flip">' + b.e + '</span><h2>' + esc(b.name) + '</h2><p><b>' + b.n + ' đơn = ' + b.n + ' gia đình</b> được hưởng lợi nhờ bạn. Cảm ơn bạn đã lan tỏa! 💚</p>');
+  } else if (e.kind === 'ghi') toast('Đã ghi đơn ✅ Cảm ơn bạn đã giúp thêm 1 gia đình an tâm 💚');
+  else if (e.kind === 'sua') toast('Đã lưu thay đổi ✅');
+  else if (e.kind === 'huy') toast('Đã huỷ đơn');
+}
+function tqNewForm(v, o) {
+  var f = { mode: o ? 'edit' : 'new', id: o ? o.id : '', step: 'edit', ngay: o ? o.ngay : v.today, h100: o ? String(o.h100 || '') : '', h20: o ? String(o.h20 || '') : '', tang20: o ? String(o.tang20 || '') : '',
+    ds: o ? String(o.ds || '') : '', dsAuto: !o, mdon: o ? o.mdon : '', rid: 'r' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36) };
+  return f;
+}
+document.addEventListener('input', function (ev) {
+  var t = ev.target, k = t && t.dataset && t.dataset.tq; if (!k || !S.tq.form) return;
+  var f = S.tq.form; f[k] = t.value;
+  if (k === 'ds') f.dsAuto = false;
+  else if (f.dsAuto && (k === 'h100' || k === 'h20' || k === 'tang20')) { f.ds = String(tqSuggest(f)); var el = document.getElementById('tqDs'); if (el) el.value = f.ds; }
+});
+// Tự làm mới nhẹ mỗi ~60 giây khi đang mở tab (trừ lúc đang nhập đơn và khung giờ cao điểm 12:12–13:12)
+setInterval(function () {
+  if (!S.creds || !S.v || S.tab !== 'tq' || S.busy || document.hidden || S.tq.form || S.tq.delId) return;
+  var m = TQ.vnMinutes(new Date()); if (m >= TQ.CFG.quietFrom && m <= TQ.CFG.quietTo) return;
+  send({ a: 'state' }, true);
+}, 60000);
+
 function render() {
   var tabs = document.getElementById('tabs'), out = document.getElementById('logout'), bar = document.getElementById('demoBar');
   bar.hidden = !!ENDPOINT;
@@ -685,14 +1107,14 @@ function render() {
   } else {
     tabs.hidden = false; out.hidden = false;
     var needPick = !!S.v.me.pending;
-    app.innerHTML = (needPick && S.tab !== 'today' ? '<div class="pendbar"><span>🎁 Bạn chưa chọn chữ hôm nay!</span><button data-tab="today">Chọn ngay</button></div>' : '') + bagStrip(S.v) + (S.tab === 'bag' ? viewBag(S.v) : S.tab === 'team' ? viewTeam(S.v) : S.tab === 'rules' ? viewRules() : viewToday(S.v));
+    app.innerHTML = (needPick && S.tab !== 'today' ? '<div class="pendbar"><span>🎁 Bạn chưa chọn chữ hôm nay!</span><button data-tab="today">Chọn ngay</button></div>' : '') + (S.tab === 'tq' ? '' : bagStrip(S.v)) + (S.tab === 'bag' ? viewBag(S.v) : S.tab === 'team' ? viewTeam(S.v) : S.tab === 'tq' ? viewTQ(S.v) : S.tab === 'rules' ? viewRules() : viewToday(S.v));
     tabs.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-current', b.dataset.tab === S.tab ? 'page' : 'false'); b.classList.toggle('alert', needPick && b.dataset.tab === 'today'); });
   }
 }
 
 document.addEventListener('click', function (ev) {
   var t = ev.target.closest('button'); if (!t) return;
-  if (t.dataset.tab) { S.tab = t.dataset.tab; store('gc-tab', S.tab); render(); window.scrollTo(0, 0); return; }
+  if (t.dataset.tab) { S.tab = t.dataset.tab; store('gc-tab', S.tab); render(); window.scrollTo(0, 0); if (S.tab === 'tq' && S.creds && S.v) send({ a: 'state' }, true); return; }
   if (t.id === 'logout') { S.creds = null; S.v = null; store('gc-creds', null); render(); return; }
   if (t.id === 'dNext') { Demo.nextDay(); if (S.creds) send({ a: 'state' }); else render(); return; }
   if (t.id === 'dReset') { Demo.reset(); if (S.creds) send({ a: 'state' }); else render(); return; }
@@ -705,6 +1127,16 @@ document.addEventListener('click', function (ev) {
   if (t.classList.contains('dayopt')) { var li = document.getElementById('link'); S.link = li ? li.value : ''; S.bu = +t.dataset.bu; render(); return; }
   if (t.classList.contains('pick')) { send({ a: 'pick', l: t.dataset.l }); return; }
   if (t.classList.contains('ghep')) { send({ a: 'ghep', w: t.dataset.w }); return; }
+  if (t.id === 'tqOpen') { S.tq.form = tqNewForm(S.v); S.tq.delId = null; render(); var fe = document.querySelector('.tqform'); if (fe) fe.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (t.classList.contains('tqedit')) { var eo = S.v.tq.me.orders.filter(function (x) { return x.id === t.dataset.id; })[0]; if (eo) { S.tq.form = tqNewForm(S.v, eo); S.tq.delId = null; render(); var fe2 = document.querySelector('.tqform'); if (fe2) fe2.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
+  if (t.id === 'tqCancel') { S.tq.form = null; render(); return; }
+  if (t.id === 'tqBack') { S.tq.form.step = 'edit'; render(); return; }
+  if (t.id === 'tqReview') { var tf = S.tq.form; if (!tf.ngay) { toast('Chọn ngày bán nha.'); return; } if (!(+tf.h100 || 0) && !(+tf.h20 || 0)) { toast('Đơn cần ít nhất 1 hộp (100g hoặc 20g).'); return; } tf.step = 'review'; render(); var fe3 = document.querySelector('.tqform'); if (fe3) fe3.scrollIntoView({ block: 'start' }); return; }
+  if (t.id === 'tqSubmit') { var sf = S.tq.form; send({ a: sf.mode === 'edit' ? 'sua_don' : 'ghi_don', id: sf.id, ngay: sf.ngay, h100: sf.h100 || '0', h20: sf.h20 || '0', tang20: sf.tang20 || '0', ds: sf.ds || '0', mdon: sf.mdon, rid: sf.rid }); return; }
+  if (t.classList.contains('tqdel')) { S.tq.delId = t.dataset.id; render(); return; }
+  if (t.classList.contains('tqdelno')) { S.tq.delId = null; render(); return; }
+  if (t.classList.contains('tqdelok')) { var did = S.tq.delId; S.tq.delId = null; send({ a: 'huy_don', id: did }); return; }
+  if (t.id === 'tqRefresh') { send({ a: 'state' }, true); return; }
 });
 document.addEventListener('submit', function (ev) {
   if (ev.target.id !== 'login') return;
