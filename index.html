@@ -173,6 +173,8 @@
   @keyframes cffall { to { transform: translateY(110vh) rotate(360deg); opacity: .85; } }
   @media (prefers-reduced-motion: reduce) { .cf { display: none; } }
   .modal .bigemoji { font-size: 72px; line-height: 1; }
+  .chk { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; font-size: 14px; padding: 6px 0; cursor: pointer; }
+  .chk input { width: 20px; height: 20px; margin-top: 1px; flex: none; }
   .demo { background: var(--gold-soft); color: var(--gold-deep); border-radius: 12px; padding: 10px 12px; font-size: 13px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
 </style>
 </head>
@@ -470,8 +472,18 @@ var TQ = (function () {
     maxDs: 100000000,             // tối đa doanh số 1 đơn (chống gõ nhầm)
     teamMilestones: [20, 50, 100, 200, 300],   // mốc cả nhóm theo tổng gia đình (= tổng đơn)
     quietFrom: 12 * 60 + 12,      // khung giờ cao điểm: trang không tự làm mới
-    quietTo: 13 * 60 + 12
+    quietTo: 13 * 60 + 12,
+    commission: [0.10, 0.20],     // 2 mức hoa hồng CTV (Nam 09/10) — hiện cả 2, ai ở mức nào tự biết; chỉ là ƯỚC TÍNH trên doanh số tự ghi
+    supportMinDays: 5,            // đăng từ 5 ngày mà chưa có đơn → thẻ riêng mời xin hỗ trợ (Nam 09/10: video phải ra đơn thật)
+    showCountMin: 3,              // mốc đơn công khai: dưới 3 người chỉ hiện "đã có bạn đạt" (tránh lộ ai); mốc ≥ 35 đơn không bao giờ hiện số
+    hideCountFrom: 35
   };
+  // 3 việc đại sứ có thể xin BTC hỗ trợ để có đơn thật (chỉ BTC thấy ai chọn gì)
+  var SUPPORT_NEEDS = [
+    { id: 'kich_ban', label: 'Kịch bản và mẫu tin nhắn inbox khách' },
+    { id: 'nhan_rieng', label: 'BTC nhắn riêng hướng dẫn từng bước' },
+    { id: 'goi', label: 'Gọi điện hướng dẫn trực tiếp' }
+  ];
 
   // Huy hiệu theo số đơn = số gia đình được hưởng lợi (tên: Nam chốt 1 và 50; 3·5·10·20·35 là đề xuất 08/10, đổi ở đây)
   var BADGES_DON = [
@@ -491,10 +503,15 @@ var TQ = (function () {
     { n: 21, e: '⭐', name: 'Ba tuần vững vàng' },
     { n: 30, e: '🏆', name: 'Trọn 30 ngày' }
   ];
-  var BADGE_CHUNGTAY = { e: '🤝', name: 'Chung tay' };
+  var BADGE_CHUNGTAY = { e: '🙌', name: 'Chung tay' };
+  // Huy hiệu đặc biệt: đã kèm ≥1 bạn mới có đơn đầu tiên (BTC ghi số ở tab HoTro, cột "số bạn đã kèm có đơn đầu tiên")
+  var BADGE_DONGHANH = { e: '🤝', name: 'Người đồng hành' };
 
   // Cột tab BanHang (BTC đọc/đối chiếu được ngay trên Google Sheet)
   var HEAD = ['Mã dòng', 'Ghi lúc', 'Loại', 'Mã hồ sơ', 'Tên', 'Ngày bán (yyyy-mm-dd)', 'Hộp 100g', 'Hộp 20g', 'Tặng kèm 20g', 'Doanh số (đ)', 'Mã đơn siêu thị', 'Dòng gốc', 'Mã yêu cầu', 'Đối chiếu (BTC ghi ✓ dd/mm)'];
+
+  // Cột tab DongHanh (nhật ký nối tiếp yêu cầu hỗ trợ / sẵn sàng đồng hành; BTC xem ở tab HoTro)
+  var HEAD_HT = ['Mã dòng', 'Ghi lúc', 'Loại (can/san/rut_can/rut_san)', 'Mã hồ sơ', 'Tên', 'Cần hỗ trợ về', 'Ghi chú của bạn', 'Mã yêu cầu'];
 
   function vnDay(now) { return new Date(now.getTime() + 7 * 3600e3).toISOString().slice(0, 10); }
   function vnMinutes(now) { var d = new Date(now.getTime() + 7 * 3600e3); return d.getUTCHours() * 60 + d.getUTCMinutes(); }
@@ -543,6 +560,30 @@ var TQ = (function () {
     return { earned: earned, next: next ? { n: next.n, e: next.e, name: next.name, left: next.n - n } : null };
   }
 
+  // ---------- Hỗ trợ & đồng hành (Nam 09/10: ai chưa có đơn thì BTC hỗ trợ; ai giỏi sẵn sàng đồng hành bạn mới) ----------
+  // evs: [{kind:'can'|'san'|'rut_can'|'rut_san', id, ma, name, at, nd: ['kich_ban',…], note, rid}] — sự kiện sau thắng cho từng (người, loại)
+  function supportReduce(evs) {
+    var by = {};
+    (evs || []).forEach(function (e) {
+      var u = by[e.ma] = by[e.ma] || { can: null, san: null };
+      if (e.kind === 'can') u.can = { nd: e.nd || [], note: e.note || '', at: e.at };
+      else if (e.kind === 'rut_can') u.can = null;
+      else if (e.kind === 'san') u.san = { at: e.at };
+      else if (e.kind === 'rut_san') u.san = null;
+    });
+    return by;
+  }
+  // Mốc đơn công khai: số người đã đạt TỪ mốc này trở lên (cộng dồn), KHÔNG tên. Ít người thì không hiện số (tránh đoán ra ai)
+  function tierCounts(act) {
+    var per = {}; act.forEach(function (o) { per[o.ma] = (per[o.ma] || 0) + 1; });
+    var counts = Object.keys(per).map(function (m) { return per[m]; });
+    return BADGES_DON.map(function (b) {
+      var c = counts.filter(function (n) { return n >= b.n; }).length;
+      var show = b.n >= CFG.hideCountFrom ? (c > 0 ? 'some' : 'none') : (c >= CFG.showCountMin ? 'count' : (c > 0 ? 'some' : 'none'));
+      return { n: b.n, e: b.e, name: b.name, count: show === 'count' ? c : 0, show: show };
+    });
+  }
+
   // ---------- Dữ liệu hiển thị ----------
   // ctx: { now, days: [yyyy-mm-dd đã check-in của người này], total: tổng lượt check-in cả nhóm (từ core), thanks: [{ngay, ma, ten, goc, loi, congkhai}], cfg: {khong_ctv: 'MA,MA', tuong_tac: số, tuong_tac_cap_nhat: text} }
   function view(evs, ma, ctx) {
@@ -558,9 +599,13 @@ var TQ = (function () {
     var pub = thanksAll.filter(function (t) { return String(t.congkhai || 'có').toLowerCase() !== 'không'; });
     var myThanks = thanksAll.filter(function (t) { return t.ma === ma; });
     var dayNo = Math.min(30, Math.max(0, dayIdx(today) - dayIdx(CFG.start) + 1));
+    var sup = supportReduce(ctx.ht), mySup = sup[ma] || { can: null, san: null }, kem = ctx.kem || {};
+    var myKem = Math.max(0, Math.floor(+kem[ma] || 0)), kemTong = Object.keys(kem).reduce(function (s, m) { return s + Math.max(0, Math.floor(+kem[m] || 0)); }, 0);
+    var sanSang = Object.keys(sup).filter(function (m) { return sup[m].san; }).length, myDs = sum(mine, 'ds');
     return {
       cfg: { start: CFG.start, price100: CFG.price100, price20: CFG.price20, maxHop: CFG.maxHop, quietFrom: CFG.quietFrom, quietTo: CFG.quietTo,
-        badgesDon: BADGES_DON, badgesNgay: BADGES_NGAY, badgeChungTay: BADGE_CHUNGTAY, teamMilestones: ms },
+        badgesDon: BADGES_DON, badgesNgay: BADGES_NGAY, badgeChungTay: BADGE_CHUNGTAY, badgeDongHanh: BADGE_DONGHANH, teamMilestones: ms,
+        supportNeeds: SUPPORT_NEEDS, commission: CFG.commission, supportMinDays: CFG.supportMinDays },
       updated: now.toISOString(),
       me: {
         isCtv: khong.indexOf(ma) < 0,
@@ -568,10 +613,15 @@ var TQ = (function () {
         don: mine.length, h100: sum(mine, 'h100'), h20: sum(mine, 'h20'), tang20: sum(mine, 'tang20'), ds: sum(mine, 'ds'),
         share: team.don ? Math.round(mine.length / team.don * 1000) / 10 : 0,
         badges: badgeState(mine.length, BADGES_DON),
-        ngay: { tong: days.length, streak: longestStreak(days), dayNo: dayNo, totalDays: 30, badges: badgeState(days.length, BADGES_NGAY) },
-        chungtay: myThanks.map(function (t) { return { ngay: t.ngay, goc: t.goc, loi: t.loi }; })
+        ngay: { tong: days.length, streak: longestStreak(days), dayNo: dayNo, totalDays: 30, badges: badgeState(days.length, BADGES_NGAY),
+          needSupport: days.length >= CFG.supportMinDays && mine.length === 0 && !mySup.can },
+        chungtay: myThanks.map(function (t) { return { ngay: t.ngay, goc: t.goc, loi: t.loi }; }),
+        ht: { can: mySup.can, san: !!mySup.san, kem: myKem },
+        badgesSpecial: { chungtay: myThanks.length > 0, donghanh: myKem >= 1 },
+        hoaHong: CFG.commission.map(function (rt) { return { rate: rt, vnd: Math.round(myDs * rt) }; })
       },
       team: { don: team.don, h100: team.h100, h20: team.h20, ds: team.ds, nguoi: team.nguoi, milestones: ms, reached: reached, next: nextM, left: nextM ? nextM - team.don : 0,
+        tiers: tierCounts(act), sanSang: sanSang, kemTong: kemTong,
         videos: ctx.total || 0, tuongTac: ctx.cfg && +ctx.cfg.tuong_tac > 0 ? +ctx.cfg.tuong_tac : 0, tuongTacCapNhat: (ctx.cfg && ctx.cfg.tuong_tac_cap_nhat) || '' },
       thanks: pub.map(function (t) { return { ngay: t.ngay, ten: t.ten, goc: t.goc, loi: t.loi }; }),
       quiet: vnMinutes(now) >= CFG.quietFrom && vnMinutes(now) <= CFG.quietTo
@@ -601,6 +651,29 @@ var TQ = (function () {
     return active(list).filter(function (o) { return o.ma === ma && o.id !== exceptId && o.mdon && o.mdon.toUpperCase() === mdon.toUpperCase(); })[0] || null;
   }
 
+  // Gửi / rút yêu cầu hỗ trợ ('can') hoặc đăng ký / rút đồng hành ('san'). evs = nhật ký tab DongHanh (KHÔNG phải BanHang).
+  function actSupport(req, evs, who, ma, now, idGen) {
+    var err = function (m) { return { res: { ok: false, error: m }, events: [] }; };
+    var at = now.toISOString(), newId = idGen || function () { return 'H' + now.getTime().toString(36) + Math.floor(Math.random() * 1679616).toString(36); };
+    var loai = String(req.loai || '');
+    if (loai !== 'can' && loai !== 'san') return err('Yêu cầu không hợp lệ.');
+    var cur = (supportReduce(evs)[ma] || { can: null, san: null })[loai], rid = String(req.rid || '').slice(0, 40);
+    if (rid) { var dup = (evs || []).filter(function (e) { return e.rid === rid && e.ma === ma; })[0];
+      if (dup) return { res: { ok: true, last: { t: 'ht', kind: dup.kind, dup: 1 } }, events: [] }; }
+    if (req.a === 'ht_rut') {
+      if (!cur) return err(loai === 'can' ? 'Bạn chưa gửi yêu cầu hỗ trợ.' : 'Bạn chưa đăng ký đồng hành.');
+      return { res: { ok: true, last: { t: 'ht', kind: 'rut_' + loai } }, events: [{ kind: 'rut_' + loai, id: newId(), ma: ma, name: who.name, at: at, nd: [], note: '', rid: rid }] };
+    }
+    var nd = [], note = String(req.note || '').trim().slice(0, 200);
+    if (loai === 'can') {
+      var okIds = SUPPORT_NEEDS.map(function (n) { return n.id; });
+      nd = (Array.isArray(req.nd) ? req.nd : String(req.nd || '').split(',')).map(function (x) { return String(x).trim(); })
+        .filter(function (x, i, a) { return okIds.indexOf(x) > -1 && a.indexOf(x) === i; });
+      if (!nd.length) return err('Chọn ít nhất 1 cách bạn muốn BTC hỗ trợ nha.');
+    } else if (cur) return err('Bạn đã đăng ký đồng hành rồi, cảm ơn bạn 💚');
+    return { res: { ok: true, last: { t: 'ht', kind: loai } }, events: [{ kind: loai, id: newId(), ma: ma, name: who.name, at: at, nd: nd, note: note, rid: rid }] };
+  }
+
   // idGen: hàm tạo mã dòng mới (mặc định theo giờ + ngẫu nhiên)
   function act(req, evs, players, now, idGen) {
     var err = function (m) { return { res: { ok: false, error: m }, events: [] }; };
@@ -608,6 +681,7 @@ var TQ = (function () {
     var who = (players || []).filter(function (x) { return x.ma === ma; })[0];
     if (who && !String(who.pin || '').trim()) return err('Tài khoản của bạn chưa có PIN. Nhắn BTC (Kỳ Nam) để được cấp.');
     if (!who || String(who.pin) !== String(req.pin || '').trim()) return err('Mã đại sứ hoặc mã PIN chưa đúng. PIN là 4 số cuối SĐT bạn đăng ký.');
+    if (req.a === 'ht_gui' || req.a === 'ht_rut') return actSupport(req, evs, who, ma, now, idGen);
     var today = vnDay(now), at = now.toISOString(), r = reduce(evs), newId = (idGen || function () { return 'D' + now.getTime().toString(36) + Math.floor(Math.random() * 1679616).toString(36); });
     var before = badgeState(active(r.list).filter(function (o) { return o.ma === ma; }).length, BADGES_DON).earned.length;
 
@@ -638,7 +712,8 @@ var TQ = (function () {
     return err('Yêu cầu không hợp lệ.');
   }
 
-  function isAct(a) { return a === 'ghi_don' || a === 'sua_don' || a === 'huy_don'; }
+  function isSupportAct(a) { return a === 'ht_gui' || a === 'ht_rut'; }
+  function isAct(a) { return a === 'ghi_don' || a === 'sua_don' || a === 'huy_don' || isSupportAct(a); }
 
   // ---------- Chuyển qua lại dòng Google Sheet ↔ sự kiện ----------
   function toRow(e) {
@@ -649,8 +724,16 @@ var TQ = (function () {
       ngay: String(r[5] || ''), h100: Number(r[6]) || 0, h20: Number(r[7]) || 0, tang20: Number(r[8]) || 0, ds: Number(r[9]) || 0, mdon: String(r[10] || ''), ref: String(r[11] || ''), rid: String(r[12] || ''), dc: String(r[13] || '') };
   }
 
-  return { CFG: CFG, HEAD: HEAD, BADGES_DON: BADGES_DON, BADGES_NGAY: BADGES_NGAY, BADGE_CHUNGTAY: BADGE_CHUNGTAY,
-    reduce: reduce, view: view, act: act, isAct: isAct, toRow: toRow, fromRow: fromRow, badgeState: badgeState, longestStreak: longestStreak, vnDay: vnDay, vnMinutes: vnMinutes, validDate: validDate };
+  // Dòng tab DongHanh ↔ sự kiện hỗ trợ (cột "Cần hỗ trợ về" lưu mã cách nhau bằng dấu phẩy)
+  function toRowHT(e) { return [e.id, new Date(e.at), e.kind, e.ma, e.name || '', (e.nd || []).join(','), e.note || '', e.rid || '']; }
+  function fromRowHT(r) {
+    return { id: String(r[0]), at: r[1] instanceof Date ? r[1].toISOString() : String(r[1]), kind: String(r[2]), ma: String(r[3]).trim().toUpperCase(), name: String(r[4] || ''),
+      nd: String(r[5] || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean), note: String(r[6] || ''), rid: String(r[7] || '') };
+  }
+
+  return { CFG: CFG, HEAD: HEAD, HEAD_HT: HEAD_HT, SUPPORT_NEEDS: SUPPORT_NEEDS, BADGES_DON: BADGES_DON, BADGES_NGAY: BADGES_NGAY, BADGE_CHUNGTAY: BADGE_CHUNGTAY, BADGE_DONGHANH: BADGE_DONGHANH,
+    reduce: reduce, view: view, act: act, isAct: isAct, isSupportAct: isSupportAct, supportReduce: supportReduce, tierCounts: tierCounts, active: active,
+    toRow: toRow, fromRow: fromRow, toRowHT: toRowHT, fromRowHT: fromRowHT, badgeState: badgeState, longestStreak: longestStreak, vnDay: vnDay, vnMinutes: vnMinutes, validDate: validDate };
 })();
 
 </script>
@@ -698,7 +781,7 @@ var Demo = (function () {
       matesDay(ev, day, r);
       day = GC.addDays(day, 1);
     }
-    return { ev: ev, day: today, sales: seedSales() };
+    return { ev: ev, day: today, sales: seedSales(), support: seedSupport() };
   }
   var THANKS = [
     { ngay: '08/10/2026', ma: 'UMK-FTSS', ten: 'Minh Hải', goc: 'Góp ý tưởng slogan chiến dịch marketing "Umikai - Sạch từ hôm nay – khỏe cho ngày mai."', loi: 'Ghi nhận', congkhai: 'có' },
@@ -714,8 +797,11 @@ var Demo = (function () {
       return { kind: 'ghi', id: 'S' + i, ma: x[0], name: '', at: at(x[1], 800).toISOString(), ngay: x[1], h100: x[2], h20: x[3], tang20: 0, ds: x[4], mdon: '', rid: '', dc: '' };
     });
   }
+  function seedSupport() {
+    return ['UMK-A02', 'UMK-A04'].map(function (m, i) { return { kind: 'san', id: 'H' + i, ma: m, name: '', at: at('2026-10-07', 800).toISOString(), nd: [], note: '', rid: '' }; });
+  }
   function decorate(res, d, now) {
-    if (res.ok && res.view) res.view.tq = TQ.view(d.sales || [], res.view.me.ma, { now: now, days: res.view.me.days, total: res.view.team.total, thanks: THANKS, cfg: { khong_ctv: '', tuong_tac: '', tuong_tac_cap_nhat: '' } });
+    if (res.ok && res.view) res.view.tq = TQ.view(d.sales || [], res.view.me.ma, { now: now, days: res.view.me.days, total: res.view.team.total, thanks: THANKS, cfg: { khong_ctv: '', tuong_tac: '', tuong_tac_cap_nhat: '' }, ht: d.support || [], kem: {} });
     return res;
   }
   var mem = null; // giữ tiến trình khi trình duyệt chặn localStorage
@@ -723,11 +809,12 @@ var Demo = (function () {
   return {
     players: players,
     handle: function (req) {
-      var d = data(), now = at(d.day, 12 * 60 + 30); d.sales = d.sales || [];
+      var d = data(), now = at(d.day, 12 * 60 + 30); d.sales = d.sales || []; d.support = d.support || [];
       if (TQ.isAct(req.a)) {
-        var t = TQ.act(req, d.sales, players, now, function () { return 'D' + Math.random().toString(36).slice(2, 9); });
+        var isS = TQ.isSupportAct(req.a);
+        var t = TQ.act(req, isS ? d.support : d.sales, players, now, function () { return 'D' + Math.random().toString(36).slice(2, 9); });
         if (!t.res.ok) return t.res;
-        d.sales = d.sales.concat(t.events);
+        if (isS) d.support = d.support.concat(t.events); else d.sales = d.sales.concat(t.events);
         var s2 = GC.act({ a: 'state', ma: req.ma, pin: req.pin }, d.ev, players, now, Math.random);
         d.ev = d.ev.concat(s2.events); store(K, d); s2.res.last = t.res.last; return decorate(s2.res, d, now);
       }
@@ -800,6 +887,7 @@ function send(req, silent) {
     }
     if (!e) { if (res.view && res.view.me.pending && !S.pickShown) { S.pickShown = 1; modalPick(res.view.me.pending.o); } return; }
     if (e.t === 'don') { S.tq.form = null; S.tq.delId = null; render(); tqCelebrate(e); return; }
+    if (e.t === 'ht') { S.tq.hform = null; render(); tqHtCelebrate(e); return; }
     if (e.t === 'in' && e.o) { S.pickShown = 1; modalPick(e.o); return; }
     if (e.t === 'in' && e.l) modal('<p class="eyebrow">Chữ của ' + (e.bu ? 'hôm qua' : 'hôm nay') + '</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>' + (isKey(e.l) ? '<b>Chữ hiếm 🔑!</b> Cả game chỉ có vài chữ này.' : 'Đã bỏ vào túi chữ của bạn.') + '</p>');
     if (e.t === 'pick') modal('<p class="eyebrow">Bạn đã chọn</p><span class="tile big flip' + (isKey(e.l) ? ' key' : '') + '">' + esc(e.l) + '</span><p>Cảm ơn bạn đăng đúng giờ 12:12!</p>');
@@ -940,10 +1028,11 @@ function viewRules() {
 }
 
 /* ---------- Tab "Thành quả nhóm" (lớp riêng, không đụng luật game) ---------- */
-S.tq = { form: null, delId: null };
+S.tq = { form: null, delId: null, hform: null };
 function vnd(n) { return (+n || 0).toLocaleString('vi-VN') + 'đ'; }
 function dmyFull(s) { var p = String(s).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
 function hhmm(iso) { var d = new Date(new Date(iso).getTime() + 7 * 3600e3); return ('0' + d.getUTCHours()).slice(-2) + ':' + ('0' + d.getUTCMinutes()).slice(-2); }
+function ddmm(iso) { var d = new Date(new Date(iso).getTime() + 7 * 3600e3); return ('0' + d.getUTCDate()).slice(-2) + '/' + ('0' + (d.getUTCMonth() + 1)).slice(-2); }
 function tqSuggest(f) { var c = TQ.CFG; return (+f.h100 || 0) * c.price100 + Math.max(0, (+f.h20 || 0) - (+f.tang20 || 0)) * c.price20; }
 function tqParts(o) {
   var bits = [];
@@ -956,6 +1045,11 @@ function tqBadgeRow(table, n, unit) {
     return '<div class="tqb' + (n >= b.n ? ' on' : '') + '"><span class="e">' + b.e + '</span><b>' + esc(b.name) + '</b><small>' + b.n + ' ' + unit + '</small></div>';
   }).join('') + '</div>';
 }
+function tqSpecialRow(t) {
+  var sp = t.me.badgesSpecial;
+  return '<div class="tqbs"><div class="tqb' + (sp.donghanh ? ' on' : '') + '"><span class="e">' + t.cfg.badgeDongHanh.e + '</span><b>' + esc(t.cfg.badgeDongHanh.name) + '</b><small>kèm bạn mới có đơn đầu tiên</small></div>' +
+    '<div class="tqb' + (sp.chungtay ? ' on' : '') + '"><span class="e">' + t.cfg.badgeChungTay.e + '</span><b>' + esc(t.cfg.badgeChungTay.name) + '</b><small>góp ý tưởng, tư liệu</small></div></div>';
+}
 
 function tqTeam(v) {
   var t = v.tq, tm = t.team, pct = tm.next ? Math.min(100, Math.round(tm.don / tm.next * 100)) : 100;
@@ -966,13 +1060,25 @@ function tqTeam(v) {
     '<div class="tqstats"><div class="tqstat"><b>' + tm.h100.toLocaleString('vi-VN') + '</b><small>hộp Umikai 100g</small></div>' +
     '<div class="tqstat"><b>' + tm.h20.toLocaleString('vi-VN') + '</b><small>hộp Umikai 20g</small></div>' +
     '<div class="tqstat"><b>' + vnd(tm.ds) + '</b><small>doanh số cả nhóm</small></div>' +
-    '<div class="tqstat"><b>' + tm.nguoi + '</b><small>đại sứ đã ghi đơn</small></div></div>' +
+    '<div class="tqstat"><b>' + tm.nguoi + '</b><small>bạn đã có đơn đầu tiên 🌱</small></div></div>' +
     '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + (tm.next || tm.don) + '" aria-valuenow="' + tm.don + '"><i style="width:' + pct + '%"></i></div>' +
     '<div class="ticks">' + ticks + '</div>' +
     '<p>' + (tm.next ? 'Còn <b>' + tm.left + ' gia đình</b> nữa tới mốc <b>' + tm.next + '</b> — cả nhóm cùng cố lên! 💚' : '🎉 Cả nhóm đã vượt mọi mốc. Cảm ơn anh chị em!') + '</p>' +
+    '<p>🤝 <b>' + tm.sanSang + ' bạn</b> sẵn sàng đồng hành' + (tm.kemTong ? ' · đã đồng hành cho <b>' + tm.kemTong + ' bạn</b> có đơn hàng đầu tiên' : '') + '. Bạn đi trước kéo bạn đi sau, để ai tham gia cũng có đơn hàng thật 💚</p>' +
     '<p class="small muted">Số liệu do các đại sứ tự ghi nhận.</p></section>' +
+    tqTiers(t) +
     '<section class="card"><h3>🤝 Anh chị em cùng chung tay</h3><p>Anh chị em đã <b>chung tay làm video mỗi ngày, tương tác cho nhau</b>: <b>' + tm.videos.toLocaleString('vi-VN') + '</b> video đã đăng' +
     (tm.tuongTac ? ' · <b>' + tm.tuongTac.toLocaleString('vi-VN') + '</b> lượt tương tác' + (tm.tuongTacCapNhat ? ' (cập nhật ' + esc(tm.tuongTacCapNhat) + ')' : '') : '') + '.</p></section>';
+}
+
+// Mốc đơn công khai: chỉ SỐ bạn, không tên; ít người thì chỉ nói "đã có bạn đạt" (không đoán ra ai); mốc cao luôn không hiện số
+function tqTiers(t) {
+  var items = t.team.tiers.map(function (x) {
+    var txt = x.show === 'count' ? '<b>' + x.count + ' bạn</b> đã đạt từ mốc này' : x.show === 'some' ? 'đã có bạn đạt 🎉' : 'đang chờ bạn đầu tiên chạm mốc ✨';
+    return '<li><span class="heart">' + x.e + '</span><div><b>' + esc(x.name) + '</b> <span class="small muted">(' + x.n + ' đơn)</span><br><span class="small">' + txt + '</span></div></li>';
+  }).join('');
+  return '<section class="card"><div class="row" style="justify-content:space-between"><h3>🎉 Cả nhóm cùng ăn mừng</h3><span class="tqpub">Ai cũng thấy</span></div>' +
+    '<p class="small muted">Không ai phải đua với ai. Mỗi mốc là một nhà nữa được an tâm — bạn đi trước kéo bạn đi sau 💚</p><ul class="tqwall">' + items + '</ul></section>';
 }
 
 function tqMine(v) {
@@ -980,15 +1086,44 @@ function tqMine(v) {
   var msg = me.don > 0
     ? 'Bạn đã giúp <b>' + me.don + ' gia đình</b> an tâm hơn khi làm sạch và bảo quản thực phẩm. Cảm ơn bạn! 💚'
     : 'Đơn đầu tiên của bạn là <b>1 gia đình</b> được an tâm hơn. Ghi đơn để nhận huy hiệu <b>🌱 Người biến 0 thành có</b>.';
+  var hh = me.isCtv ? '<div class="tqstat" style="grid-column:1/-1"><small>💰 Thu nhập ước tính (theo mức hoa hồng của bạn)</small>' +
+    t.me.hoaHong.map(function (x) { return '<b style="font-size:18px">' + Math.round(x.rate * 100) + '%: ' + vnd(x.vnd) + '</b>'; }).join('') +
+    '<small>Ước tính trên doanh số bạn tự ghi. Bạn thuộc mức hoa hồng nào thì xem dòng đó nha.</small></div>' : '';
   return '<section class="card"><div class="row" style="justify-content:space-between"><h3>💚 Thành quả của bạn</h3><span class="tqlock">🔒 Chỉ bạn thấy</span></div>' +
     '<p class="tqbig">' + me.don + ' <span style="font-size:20px">gia đình</span></p><p>' + msg + '</p>' +
     '<div class="tqstats"><div class="tqstat"><b>' + me.h100 + '</b><small>hộp 100g</small></div>' +
     '<div class="tqstat"><b>' + me.h20 + '</b><small>hộp 20g' + (me.tang20 ? ' (tặng kèm ' + me.tang20 + ')' : '') + '</small></div>' +
-    '<div class="tqstat" style="grid-column:1/-1"><b>' + vnd(me.ds) + '</b><small>tổng doanh số bạn đã bán' + (me.share ? ' · góp ' + String(me.share).replace('.', ',') + '% vào tổng nhóm' : '') + '</small></div></div>' +
+    '<div class="tqstat" style="grid-column:1/-1"><b>' + vnd(me.ds) + '</b><small>tổng doanh số bạn đã bán' + (me.share ? ' · góp ' + String(me.share).replace('.', ',') + '% vào tổng nhóm' : '') + '</small></div>' + hh + '</div>' +
     '<button id="tqOpen"' + (S.tq.form ? ' disabled' : '') + '>➕ Ghi đơn của tôi</button>' +
     '<h3 style="margin-top:6px">Huy hiệu của bạn</h3>' + tqBadgeRow(t.cfg.badgesDon, me.don, 'đơn') +
     (nx ? '<p class="bu-note">Còn <b>' + nx.left + ' đơn</b> nữa là bạn đạt <b>' + nx.e + ' ' + esc(nx.name) + '</b>.</p>' : '<p class="bu-note">👑 Bạn đã đạt mọi huy hiệu. Tuyệt vời!</p>') +
-    '</section>';
+    '<h3 style="margin-top:6px">Huy hiệu đặc biệt</h3>' + tqSpecialRow(t) + '</section>';
+}
+
+// Hỗ trợ & đồng hành (Nam 09/10): ai chưa có đơn → BTC hỗ trợ cụ thể; ai giỏi → sẵn sàng đồng hành bạn mới. Chỉ BTC thấy ai bấm.
+function tqSupport(v) {
+  var t = v.tq, me = t.me, ht = me.ht, hf = S.tq.hform, needs = t.cfg.supportNeeds;
+  var labelOf = {}; needs.forEach(function (n) { labelOf[n.id] = n.label; });
+  var cta = me.ngay.needSupport && !hf
+    ? '<div class="pendbar" style="flex-direction:column;align-items:flex-start"><span>🎬 Bạn đã đăng ' + me.ngay.tong + ' video rồi. Mình cùng tìm cách để video đổi ra đơn hàng thật nhé 💚</span>' +
+      '<button class="tqHtOpen">🙋 Mình muốn được hỗ trợ</button></div>' : '';
+  var can;
+  if (hf) {
+    can = '<h3>🙋 Bạn muốn BTC hỗ trợ gì?</h3><p class="small muted">Chọn một hoặc nhiều cách. BTC sẽ liên hệ bạn sớm, không ai biết ngoài BTC.</p>' +
+      needs.map(function (n) { return '<label class="chk"><input type="checkbox" data-hf="' + n.id + '"' + (hf.nd.indexOf(n.id) > -1 ? ' checked' : '') + '><span>' + esc(n.label) + '</span></label>'; }).join('') +
+      '<label class="tqform" style="display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:14px">Bạn đang vướng ở đâu? (không bắt buộc)<input type="text" maxlength="200" data-hf="note" placeholder="vd: mình chưa biết nhắn khách thế nào" value="' + esc(hf.note) + '" style="font:500 16px var(--body);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px"></label>' +
+      '<div class="row"><button id="tqHtSend"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Đang gửi…' : 'Gửi cho BTC') + '</button><button class="ghost" id="tqHtClose">Đóng</button></div>';
+  } else if (ht.can) {
+    can = '<p>🙋 Bạn đã gửi yêu cầu hỗ trợ ngày <b>' + ddmm(ht.can.at) + '</b>: ' + ht.can.nd.map(function (id) { return esc(labelOf[id] || id); }).join('; ') + (ht.can.note ? ' — "' + esc(ht.can.note) + '"' : '') + '.</p>' +
+      '<p class="small muted">BTC sẽ liên hệ bạn sớm. Cần đổi thì bấm Đổi lựa chọn.</p><div class="row"><button class="ghost tqHtOpen">Đổi lựa chọn</button><button class="ghost" id="tqHtRut">Rút yêu cầu</button></div>';
+  } else {
+    can = '<p>' + (me.don > 0 ? 'Muốn có thêm đơn? BTC sẵn sàng hỗ trợ bạn: kịch bản và mẫu tin inbox khách, nhắn riêng hoặc gọi hướng dẫn.' : 'Chưa có đơn đầu tiên cũng không sao — BTC có kịch bản và mẫu tin nhắn inbox khách, nhắn riêng hoặc gọi hướng dẫn bạn từng bước.') + '</p><button class="tqHtOpen">🙋 Mình muốn được hỗ trợ có đơn</button>';
+  }
+  var san = ht.san
+    ? '<p>🤝 Cảm ơn bạn đã sẵn sàng đồng hành! BTC sẽ nhờ bạn kèm một bạn mới có đơn đầu tiên.</p><button class="ghost" id="tqSanOff">Rút đăng ký đồng hành</button>'
+    : '<p>' + (me.don > 0 ? 'Bạn đã có kinh nghiệm bán hàng? ' : '') + 'Chia sẻ cách làm cho bạn mới là cách đẹp nhất để cả nhóm cùng có đơn hàng thật.</p><button class="ghost" id="tqSanOn">🤝 Mình sẵn sàng đồng hành bạn mới</button>';
+  return cta + '<section class="card"><div class="row" style="justify-content:space-between"><h3>🤝 Hỗ trợ & đồng hành</h3><span class="tqlock">🔒 Chỉ BTC biết</span></div>' +
+    '<p class="small muted">Đơn hàng là doanh số, là thu nhập xứng đáng bạn nhận được khi tham gia chương trình. Cả nhóm cùng đi để ai cũng có kết quả thật, không phải chỉ đăng video cho có.</p>' + can + '<hr style="border:0;border-top:1px solid var(--line);width:100%">' + san + '</section>';
 }
 
 function tqForm(v) {
@@ -1034,10 +1169,10 @@ function tqOrders(v) {
 
 function tqPersist(v) {
   var n = v.tq.me.ngay, bd = n.badges, nx = bd.next;
-  var any = v.tq.me.chungtay.length ? '<p>🤝 <b>Chung tay:</b> ' + v.tq.me.chungtay.map(function (c) { return esc(c.goc) + ' (' + esc(c.ngay) + ')'; }).join('; ') + '. Cảm ơn bạn!</p>' : '';
+  var any = v.tq.me.chungtay.length ? '<p>🙌 <b>Chung tay:</b> ' + v.tq.me.chungtay.map(function (c) { return esc(c.goc) + ' (' + esc(c.ngay) + ')'; }).join('; ') + '. Cảm ơn bạn!</p>' : '';
   return '<section class="card"><div class="row" style="justify-content:space-between"><h3>🎬 Kiên trì làm video</h3><span class="tqlock">🔒 Chỉ bạn thấy</span></div>' +
     (n.tong > 0
-      ? '<p><b>Đây là kết quả bạn xứng đáng nhận được khi kiên trì làm video.</b></p><p class="small muted">Mỗi video là một lần bạn sáng tạo hơn, bền chí hơn.</p>'
+      ? '<p><b>Đây là kết quả bạn xứng đáng nhận được khi kiên trì làm video.</b></p><p class="small muted">Mỗi video là một lần bạn sáng tạo hơn, bền chí hơn. Và đơn hàng là thu nhập xứng đáng cho sự bền chí đó 💚</p>'
       : '<p><b>Mỗi video là một bước.</b> Hôm nay mình đăng video đầu tiên nhé 💚</p>') +
     '<div class="tqstats"><div class="tqstat"><b>' + n.tong + '</b><small>ngày đã đăng</small></div><div class="tqstat"><b>' + n.streak + '</b><small>ngày liên tiếp dài nhất</small></div></div>' +
     tqBadgeRow(v.tq.cfg.badgesNgay, n.tong, 'ngày') +
@@ -1054,7 +1189,7 @@ function tqThanks(v) {
 
 function viewTQ(v) {
   if (!v.tq) return '<section class="card"><h2>Thành quả nhóm</h2><p class="muted">Tính năng đang được chuẩn bị. Bạn quay lại sau ít phút nhé 💚</p></section>';
-  return tqTeam(v) + tqMine(v) + tqForm(v) + tqOrders(v) + tqPersist(v) + tqThanks(v) +
+  return tqTeam(v) + tqMine(v) + tqSupport(v) + tqForm(v) + tqOrders(v) + tqPersist(v) + tqThanks(v) +
     '<p class="small muted" style="text-align:center">Cập nhật lúc ' + hhmm(v.tq.updated) + ' · <button class="ghost" id="tqRefresh">Làm mới</button></p>';
 }
 
@@ -1083,15 +1218,29 @@ function tqNewForm(v, o) {
     ds: o ? String(o.ds || '') : '', dsAuto: !o, mdon: o ? o.mdon : '', rid: 'r' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36) };
   return f;
 }
+function tqRid() { return 'h' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
+function tqHtCelebrate(e) {
+  if (e.dup) { toast('Mình đã nhận yêu cầu này rồi nha 💚'); return; }
+  if (e.kind === 'can') toast('Đã gửi cho BTC ✅ BTC sẽ liên hệ bạn sớm để hỗ trợ có đơn hàng thật 💚');
+  else if (e.kind === 'san') toast('Cảm ơn bạn đã sẵn sàng đồng hành 🤝 BTC sẽ nhờ bạn kèm một bạn mới.');
+  else toast('Đã rút ✅');
+}
 document.addEventListener('input', function (ev) {
-  var t = ev.target, k = t && t.dataset && t.dataset.tq; if (!k || !S.tq.form) return;
+  var t = ev.target;
+  if (t && t.dataset && t.dataset.hf !== undefined && S.tq.hform) {
+    var hk = t.dataset.hf, hf = S.tq.hform;
+    if (hk === 'note') hf.note = t.value;
+    else { var i = hf.nd.indexOf(hk); if (t.checked && i < 0) hf.nd.push(hk); if (!t.checked && i > -1) hf.nd.splice(i, 1); }
+    return;
+  }
+  var k = t && t.dataset && t.dataset.tq; if (!k || !S.tq.form) return;
   var f = S.tq.form; f[k] = t.value;
   if (k === 'ds') f.dsAuto = false;
   else if (f.dsAuto && (k === 'h100' || k === 'h20' || k === 'tang20')) { f.ds = String(tqSuggest(f)); var el = document.getElementById('tqDs'); if (el) el.value = f.ds; }
 });
-// Tự làm mới nhẹ mỗi ~60 giây khi đang mở tab (trừ lúc đang nhập đơn và khung giờ cao điểm 12:12–13:12)
+// Tự làm mới nhẹ mỗi ~60 giây khi đang mở tab (trừ lúc đang nhập đơn / xin hỗ trợ và khung giờ cao điểm 12:12–13:12)
 setInterval(function () {
-  if (!S.creds || !S.v || S.tab !== 'tq' || S.busy || document.hidden || S.tq.form || S.tq.delId) return;
+  if (!S.creds || !S.v || S.tab !== 'tq' || S.busy || document.hidden || S.tq.form || S.tq.delId || S.tq.hform) return;
   var m = TQ.vnMinutes(new Date()); if (m >= TQ.CFG.quietFrom && m <= TQ.CFG.quietTo) return;
   send({ a: 'state' }, true);
 }, 60000);
@@ -1137,6 +1286,12 @@ document.addEventListener('click', function (ev) {
   if (t.classList.contains('tqdelno')) { S.tq.delId = null; render(); return; }
   if (t.classList.contains('tqdelok')) { var did = S.tq.delId; S.tq.delId = null; send({ a: 'huy_don', id: did }); return; }
   if (t.id === 'tqRefresh') { send({ a: 'state' }, true); return; }
+  if (t.classList.contains('tqHtOpen')) { var hc = S.v.tq.me.ht.can; S.tq.hform = { nd: hc ? hc.nd.slice() : [], note: hc ? hc.note : '' }; render(); var hs = document.getElementById('tqHtSend'); if (hs) hs.scrollIntoView({ block: 'center' }); return; }
+  if (t.id === 'tqHtClose') { S.tq.hform = null; render(); return; }
+  if (t.id === 'tqHtSend') { var hf = S.tq.hform; if (!hf.nd.length) { toast('Chọn ít nhất 1 cách bạn muốn BTC hỗ trợ nha.'); return; } send({ a: 'ht_gui', loai: 'can', nd: hf.nd, note: hf.note, rid: tqRid() }); return; }
+  if (t.id === 'tqHtRut') { send({ a: 'ht_rut', loai: 'can', rid: tqRid() }); return; }
+  if (t.id === 'tqSanOn') { send({ a: 'ht_gui', loai: 'san', rid: tqRid() }); return; }
+  if (t.id === 'tqSanOff') { send({ a: 'ht_rut', loai: 'san', rid: tqRid() }); return; }
 });
 document.addEventListener('submit', function (ev) {
   if (ev.target.id !== 'login') return;
